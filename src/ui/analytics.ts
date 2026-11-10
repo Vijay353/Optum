@@ -48,8 +48,14 @@ export function installClarity(win: Win, doc: Document, projectId: string): bool
   if (win.__ebClarityInstalled) { active = true; return false; }
   win.__ebClarityInstalled = true;
   const stub: ClarityFn = (...args: unknown[]) => { (stub.q = stub.q || []).push(args); };
-  win.clarity = win.clarity || stub;
+  // A truthy non-function on window.clarity (e.g. a <script id="clarity"> element
+  // exposed by the browser as a named window property) is not a working queue:
+  // install the stub whenever there is no real function, or the tag crashes.
+  if (typeof win.clarity !== "function") win.clarity = stub;
   const t = doc.createElement("script");
+  // Never id="clarity": browsers expose elements by id on window, which would
+  // shadow the queue function above and break the downloaded tag.
+  t.id = "clarity-script";
   t.async = true;
   t.src = `https://www.clarity.ms/tag/${projectId}`;
   doc.head.appendChild(t);

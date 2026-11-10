@@ -8,9 +8,9 @@ const SETTINGS = { provider: "clarity" as const, projectId: "ebtest01", allowLoc
 const SECRET = "e".repeat(48);
 
 function fakeDom() {
-  const scripts: { src: string; async: boolean }[] = [];
+  const scripts: { id: string; src: string; async: boolean }[] = [];
   const calls: unknown[][] = [];
-  const doc = { createElement: () => ({ src: "", async: false }), head: { appendChild: (s: { src: string; async: boolean }) => scripts.push(s) } } as unknown as Document;
+  const doc = { createElement: () => ({ id: "", src: "", async: false }), head: { appendChild: (s: { id: string; src: string; async: boolean }) => scripts.push(s) } } as unknown as Document;
   const win: Record<string, unknown> = {};
   return { doc, win, scripts, calls: () => ((win.clarity as { q?: unknown[][] })?.q ?? calls) };
 }
@@ -46,7 +46,19 @@ describe("loader and events", () => {
     const d = fakeDom();
     expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(true);
     expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(false);
-    expect(d.scripts).toEqual([{ src: "https://www.clarity.ms/tag/ebtest01", async: true }]);
+    expect(d.scripts).toEqual([{ id: "clarity-script", src: "https://www.clarity.ms/tag/ebtest01", async: true }]);
+    expect(d.calls()).toEqual([["consentv2", { ad_Storage: "denied", analytics_Storage: "granted" }]]);
+  });
+
+  it("still installs when window.clarity is shadowed by a truthy non-function (e.g. <script id=\"clarity\">)", () => {
+    const d = fakeDom();
+    // Browsers expose elements by id on window: a stray id=\"clarity\" element
+    // makes window.clarity truthy without being a function, which used to skip
+    // the queue install and crash the downloaded tag (a[c] is not a function).
+    (d.win as Record<string, unknown>).clarity = { nodeName: "SCRIPT" };
+    expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(true);
+    expect(typeof (d.win as Record<string, unknown>).clarity).toBe("function");
+    expect(d.scripts[0]!.id).not.toBe("clarity");
     expect(d.calls()).toEqual([["consentv2", { ad_Storage: "denied", analytics_Storage: "granted" }]]);
   });
 
