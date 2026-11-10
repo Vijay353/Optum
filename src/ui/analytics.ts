@@ -58,6 +58,13 @@ export function installClarity(win: Win, doc: Document, projectId: string): bool
   t.id = "clarity-script";
   t.async = true;
   t.src = `https://www.clarity.ms/tag/${projectId}`;
+  // If the tag is unreachable (offline, tracker blocker), drop the dead element
+  // and let a later visit retry instead of staying marked installed with nothing loaded.
+  t.onerror = () => {
+    t.remove();
+    win.__ebClarityInstalled = false;
+    active = false;
+  };
   doc.head.appendChild(t);
   // No ad storage in this app. Analytics storage only because the visitor chose "Allow".
   win.clarity!("consentv2", { ad_Storage: "denied", analytics_Storage: "granted" });

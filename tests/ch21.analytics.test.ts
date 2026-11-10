@@ -8,9 +8,16 @@ const SETTINGS = { provider: "clarity" as const, projectId: "ebtest01", allowLoc
 const SECRET = "e".repeat(48);
 
 function fakeDom() {
-  const scripts: { id: string; src: string; async: boolean }[] = [];
+  type FakeScript = { id: string; src: string; async: boolean; onerror: (() => void) | null; removed: boolean; remove(): void };
+  const scripts: FakeScript[] = [];
   const calls: unknown[][] = [];
-  const doc = { createElement: () => ({ id: "", src: "", async: false }), head: { appendChild: (s: { id: string; src: string; async: boolean }) => scripts.push(s) } } as unknown as Document;
+  const doc = {
+    createElement: () => {
+      const el: FakeScript = { id: "", src: "", async: false, onerror: null, removed: false, remove() { el.removed = true; } };
+      return el;
+    },
+    head: { appendChild: (s: FakeScript) => scripts.push(s) },
+  } as unknown as Document;
   const win: Record<string, unknown> = {};
   return { doc, win, scripts, calls: () => ((win.clarity as { q?: unknown[][] })?.q ?? calls) };
 }
@@ -46,8 +53,18 @@ describe("loader and events", () => {
     const d = fakeDom();
     expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(true);
     expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(false);
-    expect(d.scripts).toEqual([{ id: "clarity-script", src: "https://www.clarity.ms/tag/ebtest01", async: true }]);
+    expect(d.scripts).toEqual([expect.objectContaining({ id: "clarity-script", src: "https://www.clarity.ms/tag/ebtest01", async: true })]);
     expect(d.calls()).toEqual([["consentv2", { ad_Storage: "denied", analytics_Storage: "granted" }]]);
+  });
+
+  it("a failed tag load drops the dead element so a later visit can retry", () => {
+    const d = fakeDom();
+    expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(true);
+    d.scripts[0]!.onerror!(); // tracker blocker / offline: the browser fires error
+    expect(d.scripts[0]!.removed).toBe(true);
+    expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(true);
+    expect(d.scripts).toHaveLength(2);
+    expect(d.scripts[1]).toEqual(expect.objectContaining({ id: "clarity-script", src: "https://www.clarity.ms/tag/ebtest01" }));
   });
 
   it("still installs when window.clarity is shadowed by a truthy non-function (e.g. <script id=\"clarity\">)", () => {
