@@ -1,0 +1,20 @@
+{
+  "id": "stale-version",
+  "order": 12,
+  "title": "Concurrent draft edit",
+  "description": "Another user saves the draft (v3→v4) just before the task write; the write fails closed.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "ehr.task.concurrentEdit": {
+      "kind": "behavior",
+      "remaining": 1
+    }
+  },
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "REEVALUATION_REQUIRED",
+    "createsTask": false
+  }
+}

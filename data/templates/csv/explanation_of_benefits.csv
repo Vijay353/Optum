@@ -1,0 +1,87 @@
+id,patientId,providerOrgId,providerName,serviceDate,code,codeDisplay,outcome,adjudicatedAt
+EOB-1042-01,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1042-02,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1042-03,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1042-04,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1042-05,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1042-06,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1042-07,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1042-08,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1042-09,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1042-10,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1042-11,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1042-12,SYN-PAT-1042,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1044-01,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1044-02,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1044-03,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1044-04,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1044-05,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1044-06,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1044-07,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1044-08,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1044-09,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1044-10,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1044-11,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1044-12,SYN-PAT-1044,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1045-01,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1045-02,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1045-03,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1045-04,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1045-05,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1045-06,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1045-07,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1045-08,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1045-09,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1045-10,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1045-11,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1045-12,SYN-PAT-1045,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1047-01,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1047-02,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1047-03,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1047-04,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1047-05,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1047-06,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1047-07,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1047-08,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1047-09,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1047-10,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1047-11,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1047-12,SYN-PAT-1047,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1048-01,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1048-02,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1048-03,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1048-04,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1048-05,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1048-06,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1048-07,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1048-08,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1048-09,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1048-10,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1048-11,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1048-12,SYN-PAT-1048,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1049-01,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1049-02,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1049-03,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1049-04,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1049-05,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1049-06,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z
+EOB-1049-07,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-13,97110,Therapeutic exercise (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1049-08,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-18,97140,Manual therapy (illustrative),complete,2026-02-18T20:00:00Z
+EOB-1049-09,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-23,97110,Therapeutic exercise (illustrative),complete,2026-02-23T20:00:00Z
+EOB-1049-10,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-02,97140,Manual therapy (illustrative),complete,2026-03-02T20:00:00Z
+EOB-1049-11,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-05,97110,Therapeutic exercise (illustrative),complete,2026-03-05T20:00:00Z
+EOB-1049-12,SYN-PAT-1049,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-03-09,97140,Manual therapy (illustrative),complete,2026-03-09T20:00:00Z
+EOB-1043-01,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-03,97110,Therapeutic exercise (illustrative),complete,2026-02-03T20:00:00Z
+EOB-1043-02,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-06,97140,Manual therapy (illustrative),complete,2026-02-06T20:00:00Z
+EOB-1043-03,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-10,97110,Therapeutic exercise (illustrative),complete,2026-02-10T20:00:00Z
+EOB-1043-04,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-13,97140,Manual therapy (illustrative),complete,2026-02-13T20:00:00Z
+EOB-1043-05,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-17,97110,Therapeutic exercise (illustrative),complete,2026-02-17T20:00:00Z
+EOB-1043-06,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-20,97140,Manual therapy (illustrative),complete,2026-02-20T20:00:00Z
+EOB-1043-07,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-24,97110,Therapeutic exercise (illustrative),complete,2026-02-24T20:00:00Z
+EOB-1043-08,SYN-PAT-1043,SYN-ORG-PT-302,Riverbend Synthetic Rehab (fictional),2026-02-27,97140,Manual therapy (illustrative),complete,2026-02-27T20:00:00Z
+EOB-1046-01,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-12,97110,Therapeutic exercise (illustrative),complete,2026-01-12T20:00:00Z
+EOB-1046-02,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-16,97140,Manual therapy (illustrative),complete,2026-01-16T20:00:00Z
+EOB-1046-03,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-21,97110,Therapeutic exercise (illustrative),complete,2026-01-21T20:00:00Z
+EOB-1046-04,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-01-26,97140,Manual therapy (illustrative),complete,2026-01-26T20:00:00Z
+EOB-1046-05,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-02,97110,Therapeutic exercise (illustrative),complete,2026-02-02T20:00:00Z
+EOB-1046-06,SYN-PAT-1046,SYN-ORG-PT-301,Lakeside Synthetic Physical Therapy (fictional),2026-02-09,97140,Manual therapy (illustrative),complete,2026-02-09T20:00:00Z

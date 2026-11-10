@@ -1,0 +1,20 @@
+{
+  "id": "hash-mismatch",
+  "order": 11,
+  "title": "Document hash mismatch",
+  "description": "The HIE payload is altered in transit; its hash no longer matches.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "hie.binary.corrupt": {
+      "kind": "behavior",
+      "remaining": null
+    }
+  },
+  "expected": {
+    "decision": "MANUAL_REVIEW",
+    "outcomeState": "MANUAL_REVIEW",
+    "createsTask": false
+  }
+}

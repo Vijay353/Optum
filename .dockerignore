@@ -1,0 +1,16 @@
+# Never send secrets, databases, dependencies or local output into the build context.
+.git
+node_modules
+dist
+data/runtime
+**/*.sqlite
+**/*.sqlite-wal
+**/*.sqlite-shm
+**/*.db
+.env
+.env.*
+!.env.example
+test-results
+playwright-report
+*.zip
+*.log

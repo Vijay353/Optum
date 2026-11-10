@@ -1,0 +1,66 @@
+[
+  {
+    "patientId": "SYN-PAT-1042",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1043",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1044",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1045",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1046",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": false,
+    "treatmentRelationship": "NONE",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1047",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1048",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  },
+  {
+    "patientId": "SYN-PAT-1049",
+    "providerOrgId": "SYN-ORG-ORTHO-100",
+    "attributed": true,
+    "treatmentRelationship": "ESTABLISHED",
+    "effectiveFrom": "2025-11-01",
+    "effectiveTo": null
+  }
+]

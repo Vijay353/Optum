@@ -1,0 +1,9 @@
+id,patientId,planName,planType,payerOrgId
+SYN-COV-2208,SYN-PAT-1042,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2209,SYN-PAT-1043,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2210,SYN-PAT-1044,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2211,SYN-PAT-1045,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2212,SYN-PAT-1046,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2213,SYN-PAT-1047,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2214,SYN-PAT-1048,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900
+SYN-COV-2215,SYN-PAT-1049,Synthetic Medicare Advantage Plan (fictional),MEDICARE_ADVANTAGE,SYN-ORG-PAYER-900

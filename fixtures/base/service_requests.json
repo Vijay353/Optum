@@ -1,0 +1,74 @@
+[
+  {
+    "id": "SR-99412",
+    "patientId": "SYN-PAT-1042",
+    "coverageId": "SYN-COV-2208",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99413",
+    "patientId": "SYN-PAT-1043",
+    "coverageId": "SYN-COV-2209",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99414",
+    "patientId": "SYN-PAT-1044",
+    "coverageId": "SYN-COV-2210",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99415",
+    "patientId": "SYN-PAT-1045",
+    "coverageId": "SYN-COV-2211",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99416",
+    "patientId": "SYN-PAT-1046",
+    "coverageId": "SYN-COV-2212",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99417",
+    "patientId": "SYN-PAT-1047",
+    "coverageId": "SYN-COV-2213",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99418",
+    "patientId": "SYN-PAT-1048",
+    "coverageId": "SYN-COV-2214",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  },
+  {
+    "id": "SR-99419",
+    "patientId": "SYN-PAT-1049",
+    "coverageId": "SYN-COV-2215",
+    "description": "Elective lumbar procedure (synthetic)",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "requestedDate": "2026-10-16",
+    "orderingOrgId": "SYN-ORG-ORTHO-100"
+  }
+]

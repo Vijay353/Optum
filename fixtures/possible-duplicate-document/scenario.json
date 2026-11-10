@@ -1,0 +1,12 @@
+{
+  "id": "possible-duplicate-document",
+  "order": 16,
+  "title": "Second summary for the same period",
+  "description": "The HIE holds two discharge summaries from the same clinic for the same therapy period (an original and an amended copy). A person must decide which one applies.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "overlays": ["overlays/second-pt-summary"],
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": { "decision": "MANUAL_REVIEW", "outcomeState": "MANUAL_REVIEW", "createsTask": false }
+}

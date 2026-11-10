@@ -1,0 +1,15 @@
+{
+  "id": "primary-success",
+  "order": 1,
+  "title": "Primary success",
+  "description": "External PT evidence is found, verified and staged as one review task.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "EVIDENCE_REVIEW_PENDING",
+    "createsTask": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "opt-out",
+  "order": 3,
+  "title": "Patient opt-out",
+  "description": "The patient opted out of Provider Access sharing; no external retrieval happens.",
+  "draftId": "PA-DRAFT-99414",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "ACCESS_NOT_PERMITTED",
+    "outcomeState": "ACCESS_NOT_PERMITTED",
+    "createsTask": false
+  }
+}

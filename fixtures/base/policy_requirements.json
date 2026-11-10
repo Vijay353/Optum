@@ -1,0 +1,43 @@
+[
+  {
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "status": "active",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "label": "SYNTHETIC — fictional documentation checklist. Not InterQual, not Optum CES, not any payer's medical policy.",
+    "effectiveFrom": "2026-10-01",
+    "effectiveTo": null,
+    "requirements": [
+      {
+        "code": "ADVANCED_IMAGING_REPORT",
+        "description": "Advanced imaging report on file (synthetic checklist item)",
+        "localDocumentTypes": ["imaging-report"],
+        "externalDocumentTypes": [],
+        "lookbackMonths": 12
+      },
+      {
+        "code": "SUPERVISED_PHYSICAL_THERAPY_DOCUMENTATION",
+        "description": "Documentation of supervised physical therapy (synthetic checklist item)",
+        "localDocumentTypes": ["pt-discharge-summary", "pt-progress-note"],
+        "externalDocumentTypes": ["pt-discharge-summary"],
+        "lookbackMonths": 12
+      }
+    ]
+  },
+  {
+    "policyVersion": "SYN-SPINE-PA-2026-07",
+    "status": "retired",
+    "serviceCategory": "ELECTIVE_LUMBAR_PROCEDURE",
+    "label": "SYNTHETIC — retired fictional checklist version kept for version-mismatch testing.",
+    "effectiveFrom": "2026-07-01",
+    "effectiveTo": "2026-09-30",
+    "requirements": [
+      {
+        "code": "SUPERVISED_PHYSICAL_THERAPY_DOCUMENTATION",
+        "description": "Documentation of supervised physical therapy (synthetic checklist item)",
+        "localDocumentTypes": ["pt-discharge-summary", "pt-progress-note"],
+        "externalDocumentTypes": ["pt-discharge-summary"],
+        "lookbackMonths": 6
+      }
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "id": "prompt-injection",
+  "order": 7,
+  "title": "Instruction text inside document",
+  "description": "The document contains instructions aimed at automated systems; they are treated as data.",
+  "draftId": "PA-DRAFT-99418",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "EVIDENCE_REVIEW_PENDING",
+    "createsTask": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "claims-only",
+  "order": 2,
+  "title": "Claims only",
+  "description": "Claims show PT visits but no clinical document exists at the HIE.",
+  "draftId": "PA-DRAFT-99413",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "CLAIM_LEAD_ONLY",
+    "outcomeState": "CLAIM_SOURCE_FOLLOWUP",
+    "createsTask": false
+  }
+}

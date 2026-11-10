@@ -1,0 +1,16 @@
+[
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7782",
+    "indexedPatientId": "SYN-PAT-1042",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary, amended (synthetic)",
+    "date": "2026-03-12",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  }
+]

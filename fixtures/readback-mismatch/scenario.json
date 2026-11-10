@@ -1,0 +1,20 @@
+{
+  "id": "readback-mismatch",
+  "order": 15,
+  "title": "Readback mismatch",
+  "description": "The Task readback returns a different owner; the run is marked failed, not successful.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "ehr.task.readbackMismatch": {
+      "kind": "behavior",
+      "remaining": 1
+    }
+  },
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "EVIDENCE_REVIEW_PENDING",
+    "createsTask": true
+  }
+}

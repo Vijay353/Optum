@@ -1,0 +1,15 @@
+{
+  "id": "patient-mismatch",
+  "order": 6,
+  "title": "Patient mismatch",
+  "description": "The HIE indexed a document that names a different patient.",
+  "draftId": "PA-DRAFT-99417",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "INSUFFICIENT_EVIDENCE",
+    "outcomeState": "MANUAL_REVIEW",
+    "createsTask": false
+  }
+}

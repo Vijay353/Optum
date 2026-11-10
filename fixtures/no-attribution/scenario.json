@@ -1,0 +1,15 @@
+{
+  "id": "no-attribution",
+  "order": 4,
+  "title": "Provider not attributed",
+  "description": "The payer does not attribute this patient to the ordering practice.",
+  "draftId": "PA-DRAFT-99416",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "ACCESS_NOT_PERMITTED",
+    "outcomeState": "ACCESS_NOT_PERMITTED",
+    "createsTask": false
+  }
+}

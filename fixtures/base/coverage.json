@@ -1,0 +1,58 @@
+[
+  {
+    "id": "SYN-COV-2208",
+    "patientId": "SYN-PAT-1042",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2209",
+    "patientId": "SYN-PAT-1043",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2210",
+    "patientId": "SYN-PAT-1044",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2211",
+    "patientId": "SYN-PAT-1045",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2212",
+    "patientId": "SYN-PAT-1046",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2213",
+    "patientId": "SYN-PAT-1047",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2214",
+    "patientId": "SYN-PAT-1048",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  },
+  {
+    "id": "SYN-COV-2215",
+    "patientId": "SYN-PAT-1049",
+    "planName": "Synthetic Medicare Advantage Plan (fictional)",
+    "planType": "MEDICARE_ADVANTAGE",
+    "payerOrgId": "SYN-ORG-PAYER-900"
+  }
+]

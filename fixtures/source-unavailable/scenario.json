@@ -1,0 +1,21 @@
+{
+  "id": "source-unavailable",
+  "order": 9,
+  "title": "Provider Access timeout",
+  "description": "The Provider Access claims endpoint times out on every attempt.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "payer.eob": {
+      "kind": "timeout",
+      "delayMs": 2500,
+      "remaining": null
+    }
+  },
+  "expected": {
+    "decision": "SOURCE_UNAVAILABLE",
+    "outcomeState": "SOURCE_UNAVAILABLE",
+    "createsTask": false
+  }
+}

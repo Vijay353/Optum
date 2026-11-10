@@ -1,0 +1,15 @@
+{
+  "id": "ambiguous-match",
+  "order": 5,
+  "title": "Ambiguous patient match",
+  "description": "The HIE match is probabilistic and the identifier is illegible; the extractor abstains.",
+  "draftId": "PA-DRAFT-99415",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "MANUAL_REVIEW",
+    "outcomeState": "MANUAL_REVIEW",
+    "createsTask": false
+  }
+}

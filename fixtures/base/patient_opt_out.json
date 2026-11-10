@@ -1,0 +1,42 @@
+[
+  {
+    "patientId": "SYN-PAT-1042",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1043",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1044",
+    "optedOut": true,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1045",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1046",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1047",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1048",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  },
+  {
+    "patientId": "SYN-PAT-1049",
+    "optedOut": false,
+    "recordedAt": "2026-06-01T00:00:00Z"
+  }
+]

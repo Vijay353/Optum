@@ -1,0 +1,21 @@
+{
+  "id": "throttled-then-ok",
+  "order": 14,
+  "title": "Throttled, then recovers",
+  "description": "The claims endpoint returns 429 once, then succeeds after a jittered retry.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "payer.eob": {
+      "kind": "status",
+      "status": 429,
+      "remaining": 1
+    }
+  },
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "EVIDENCE_REVIEW_PENDING",
+    "createsTask": true
+  }
+}

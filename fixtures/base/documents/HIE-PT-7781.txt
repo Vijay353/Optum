@@ -1,0 +1,20 @@
+SYNTHETIC CLINICAL DOCUMENT - FOR DEMONSTRATION ONLY
+Lakeside Synthetic Physical Therapy (fictional organization SYN-ORG-PT-301)
+PHYSICAL THERAPY DISCHARGE SUMMARY
+
+Patient identifier: SYN-PAT-1042
+Age band: 55-64
+Referring practice: SYN-ORG-ORTHO-100
+Episode: lumbar spine rehabilitation
+
+Plan of care: Supervised outpatient physical therapy with a licensed physical therapist.
+Supervised therapy start date: 2026-01-12
+Supervised therapy end date: 2026-03-09
+Documented visits: 12 supervised visits attended of 12 scheduled.
+Interventions: therapeutic exercise, manual therapy, home exercise program instruction.
+Supervision: All sessions were directly supervised by a licensed physical therapist.
+
+Discharge status: Patient reports persistent low back and left leg symptoms at discharge despite completing the supervised program. Functional goals partially met.
+
+Disposition: Discharged from physical therapy. Follow-up with referring practice as needed.
+Signed: Synthetic Therapist, DPT (fictional)   Date: 2026-03-10

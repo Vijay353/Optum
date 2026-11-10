@@ -1,0 +1,90 @@
+[
+  {
+    "id": "PA-DRAFT-99412",
+    "version": 3,
+    "serviceRequestId": "SR-99412",
+    "patientId": "SYN-PAT-1042",
+    "coverageId": "SYN-COV-2208",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99413",
+    "version": 2,
+    "serviceRequestId": "SR-99413",
+    "patientId": "SYN-PAT-1043",
+    "coverageId": "SYN-COV-2209",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99414",
+    "version": 2,
+    "serviceRequestId": "SR-99414",
+    "patientId": "SYN-PAT-1044",
+    "coverageId": "SYN-COV-2210",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99415",
+    "version": 2,
+    "serviceRequestId": "SR-99415",
+    "patientId": "SYN-PAT-1045",
+    "coverageId": "SYN-COV-2211",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99416",
+    "version": 2,
+    "serviceRequestId": "SR-99416",
+    "patientId": "SYN-PAT-1046",
+    "coverageId": "SYN-COV-2212",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99417",
+    "version": 2,
+    "serviceRequestId": "SR-99417",
+    "patientId": "SYN-PAT-1047",
+    "coverageId": "SYN-COV-2213",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99418",
+    "version": 2,
+    "serviceRequestId": "SR-99418",
+    "patientId": "SYN-PAT-1048",
+    "coverageId": "SYN-COV-2214",
+    "policyVersion": "SYN-SPINE-PA-2026-10",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  },
+  {
+    "id": "PA-DRAFT-99419",
+    "version": 2,
+    "serviceRequestId": "SR-99419",
+    "patientId": "SYN-PAT-1049",
+    "coverageId": "SYN-COV-2215",
+    "policyVersion": "SYN-SPINE-PA-2026-07",
+    "businessStatus": "DRAFT_INCOMPLETE",
+    "createdAt": "2026-10-16T14:00:00Z",
+    "updatedAt": "2026-10-18T13:05:00Z"
+  }
+]

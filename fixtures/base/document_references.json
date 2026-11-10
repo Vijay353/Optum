@@ -1,0 +1,150 @@
+[
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5100",
+    "patientId": "SYN-PAT-1042",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5101",
+    "patientId": "SYN-PAT-1043",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5102",
+    "patientId": "SYN-PAT-1044",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5103",
+    "patientId": "SYN-PAT-1045",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5104",
+    "patientId": "SYN-PAT-1046",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5105",
+    "patientId": "SYN-PAT-1047",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5106",
+    "patientId": "SYN-PAT-1048",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "EHR",
+    "id": "EHR-IMG-5107",
+    "patientId": "SYN-PAT-1049",
+    "type": "imaging-report",
+    "title": "Lumbar MRI report (synthetic)",
+    "date": "2026-08-21"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7781",
+    "indexedPatientId": "SYN-PAT-1042",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7784",
+    "indexedPatientId": "SYN-PAT-1044",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7790",
+    "indexedPatientId": "SYN-PAT-1045",
+    "matchConfidence": "probable",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7795",
+    "indexedPatientId": "SYN-PAT-1047",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7798",
+    "indexedPatientId": "SYN-PAT-1048",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  },
+  {
+    "source": "HIE",
+    "id": "HIE-PT-7799",
+    "indexedPatientId": "SYN-PAT-1049",
+    "matchConfidence": "exact",
+    "authorOrgId": "SYN-ORG-PT-301",
+    "authorName": "Lakeside Synthetic Physical Therapy (fictional)",
+    "type": "pt-discharge-summary",
+    "title": "Physical therapy discharge summary (synthetic)",
+    "date": "2026-03-10",
+    "periodStart": "2026-01-12",
+    "periodEnd": "2026-03-09",
+    "contentType": "text/plain"
+  }
+]

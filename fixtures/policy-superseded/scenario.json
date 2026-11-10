@@ -1,0 +1,15 @@
+{
+  "id": "policy-superseded",
+  "order": 8,
+  "title": "Policy version superseded",
+  "description": "The draft cites a retired synthetic policy version; re-evaluation is required.",
+  "draftId": "PA-DRAFT-99419",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {},
+  "expected": {
+    "decision": "INSUFFICIENT_EVIDENCE",
+    "outcomeState": "REEVALUATION_REQUIRED",
+    "createsTask": false
+  }
+}

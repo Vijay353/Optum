@@ -1,0 +1,20 @@
+{
+  "id": "lost-response-retry",
+  "order": 13,
+  "title": "Lost response, safe retry",
+  "description": "The EHR commits the task but the response is lost; the retry replays idempotently.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "ehr.task.dropResponseAfterCommit": {
+      "kind": "behavior",
+      "remaining": 1
+    }
+  },
+  "expected": {
+    "decision": "REVIEW_EXTERNAL_EVIDENCE",
+    "outcomeState": "EVIDENCE_REVIEW_PENDING",
+    "createsTask": true
+  }
+}

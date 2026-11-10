@@ -1,0 +1,21 @@
+{
+  "id": "hie-unavailable",
+  "order": 10,
+  "title": "HIE outage",
+  "description": "The HIE document search returns 503 on every attempt.",
+  "draftId": "PA-DRAFT-99412",
+  "dataset": "base",
+  "scenarioTime": "2026-10-18T13:10:00Z",
+  "faults": {
+    "hie.search": {
+      "kind": "status",
+      "status": 503,
+      "remaining": null
+    }
+  },
+  "expected": {
+    "decision": "SOURCE_UNAVAILABLE",
+    "outcomeState": "SOURCE_UNAVAILABLE",
+    "createsTask": false
+  }
+}
