@@ -67,6 +67,23 @@ Do these yourself, in this order. Nothing here runs automatically.
 4. **App.** In Coolify, create an application from this Git repository using the Dockerfile build pack. Internal port `8787`. No host port mapping. One instance only.
 5. **Volume.** Add a persistent storage mount at `/data` backed by a dedicated host directory owned by uid 1000 (`chown 1000:1000 <dir>`). Never share it with another container.
 6. **Variables.** Add `EB_ACCESS_PIN`, `EB_SESSION_SECRET` and `EB_TRUST_PROXY=1` as secrets. Add `EB_CLARITY_PROJECT_ID` only if you want analytics (CH-21); copy it from your existing Clarity project (Settings, Overview). Then check in Clarity that the tracking code the dashboard shows matches `https://www.clarity.ms/tag/<id>`, which is what `src/ui/analytics.ts` loads.
+6. **Variables.** Add `EB_ACCESS_PIN`, `EB_SESSION_SECRET` and `EB_TRUST_PROXY=1` as secrets. Add `EB_CLARITY_PROJECT_ID` only if you want analytics (CH-21); copy it from your existing Clarity project (Settings, Overview). Then check in Clarity that the tracking code the dashboard shows matches `https://www.clarity.ms/tag/<id>`, which is what `src/ui/analytics.ts` loads.
+
+   Coolify alias mapping (accepted as-is; `EB_*` wins when both are set):
+
+   | Coolify name | Maps to | Notes |
+   |---|---|---|
+   | `PORT` | `EB_PORT` | e.g. `8080`. Already supported as a fallback. |
+   | `OPTOM_ACCESS_GATE` | `EB_ACCESS_GATE` | `true`/`false` accepted (maps to `on`/`off`). |
+   | `OPTOM_ACCESS_PIN` | `EB_ACCESS_PIN` | Exactly 4 digits. Keep only in the Coolify panel, never in git. |
+   | `OPTOM_SESSION_SECRET` | `EB_SESSION_SECRET` | 32+ random chars. Keep only in the Coolify panel, never in git. |
+   | `OPTOM_TRUST_PROXY` | `EB_TRUST_PROXY` | `true` maps to `1` (one proxy, e.g. Coolify). |
+   | `OPTOM_ALLOW_DEMO_RESET` | `EB_ALLOW_DEMO_RESET` | `false` makes `POST /api/scenarios/:id/load` return 403. |
+   | `OPTOM_CLARITY_PROJECT_ID` / `VITE_CLARITY_PROJECT_ID` | `EB_CLARITY_PROJECT_ID` | Runtime fallback; no rebuild needed. |
+   | `VITE_CLARITY_ALLOW_LOCAL` | `EB_ANALYTICS_ALLOW_LOCAL` | Keep `false` in production. |
+
+   Do not commit real PIN or session-secret values to the repository.
+   `.env.example` shows placeholders only. Production health stays on `GET /healthz`.
 7. **Domain and TLS.** Point a DNS A record at the server. Set the domain in Coolify; its proxy issues the certificate. Turn on the HTTP to HTTPS redirect after DNS resolves.
 8. **Health check.** Path `/healthz`, expected 200.
 9. **Deploy, then verify** (this is what moves the status to LIVE_VERIFIED, and only after it is actually done):

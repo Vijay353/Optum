@@ -21,6 +21,8 @@ export type Config = {
   requestingProviderOrgId: string;
   /** CH-0A: an evaluated run older than this cannot be staged; it must be checked again. */
   maxRunAgeHours: number;
+  /** Demo scenario reset via POST /api/scenarios/:id/load. False on locked-down hosted copies. */
+  allowDemoReset: boolean;
   /** CH-20: visitor access gate. Separate from the demo role switch. */
   gate: GateConfig;
   /** CH-21: public Clarity project id (an identifier, not a secret). Sent to the browser only after gate entry. */
@@ -41,9 +43,41 @@ const REQUIRED_FOR_REAL = [
   "EB_HIE_BASE_URL",
 ];
 
+/** First defined, non-empty value wins. Lets Coolify panels use OPTOM_/VITE_ names. */
+function pick(env: NodeJS.ProcessEnv, ...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = env[k];
+    if (v !== undefined && v !== "") return v;
+  }
+  return undefined;
+}
+
+/** Accepts on/off plus Coolify-style true/false/1/0. Unknown values pass through so the gate reports them. */
+function normalizeGateFlag(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined;
+  const v = raw.toLowerCase();
+  if (["on", "true", "1", "yes"].includes(v)) return "on";
+  if (["off", "false", "0", "no"].includes(v)) return "off";
+  return raw;
+}
+
+/** Accepts 1-3 plus boolean true (single proxy in front, e.g. Coolify). */
+function normalizeTrustProxy(raw: string | undefined): string | undefined {
+  if (raw === undefined || raw === "") return undefined;
+  if (raw.toLowerCase() === "true") return "1";
+  if (raw.toLowerCase() === "false") return undefined;
+  return raw;
+}
+
+function allowDemoResetFrom(env: NodeJS.ProcessEnv): boolean {
+  const raw = pick(env, "EB_ALLOW_DEMO_RESET", "OPTOM_ALLOW_DEMO_RESET");
+  if (raw === undefined) return true;
+  return !["false", "0", "off", "no"].includes(raw.toLowerCase());
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const errors: string[] = [];
-  const modeRaw = (env.EB_MODE ?? "SIMULATED").toUpperCase();
+  const modeRaw = (pick(env, "EB_MODE", "OPTOM_MODE") ?? "SIMULATED").toUpperCase();
   const mode: Mode = modeRaw === "SANDBOX" || modeRaw === "LIVE" ? modeRaw : "SIMULATED";
   if (!["SIMULATED", "SANDBOX", "LIVE"].includes(modeRaw)) errors.push(`Unknown EB_MODE "${env.EB_MODE}".`);
   if (mode !== "SIMULATED") {
@@ -56,14 +90,24 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   if (extractor === "llm" && (!env.ANTHROPIC_API_KEY || /REPLACE_ME|dummy/i.test(env.ANTHROPIC_API_KEY))) {
     errors.push("EB_EXTRACTOR=llm requires a server-side ANTHROPIC_API_KEY. Set EB_EXTRACTOR=fixture to use the deterministic extractor.");
   }
-  const host = env.EB_HOST ?? "127.0.0.1";
-  const { gate, errors: startupErrors } = gateConfigFrom(env, host);
+  const host = pick(env, "EB_HOST", "OPTOM_HOST") ?? "127.0.0.1";
+  // Coolify aliases: OPTOM_* names map to the EB_* names the gate understands.
+  const envForGate: NodeJS.ProcessEnv = {
+    ...env,
+    EB_ACCESS_GATE: normalizeGateFlag(pick(env, "EB_ACCESS_GATE", "OPTOM_ACCESS_GATE")) ?? env.EB_ACCESS_GATE,
+    EB_TRUST_PROXY: normalizeTrustProxy(pick(env, "EB_TRUST_PROXY", "OPTOM_TRUST_PROXY")) ?? env.EB_TRUST_PROXY,
+    EB_ACCESS_PIN: pick(env, "EB_ACCESS_PIN", "OPTOM_ACCESS_PIN") ?? env.EB_ACCESS_PIN,
+    EB_SESSION_SECRET: pick(env, "EB_SESSION_SECRET", "OPTOM_SESSION_SECRET") ?? env.EB_SESSION_SECRET,
+    EB_SESSION_TTL_MINUTES: pick(env, "EB_SESSION_TTL_MINUTES", "OPTOM_SESSION_TTL_MINUTES") ?? env.EB_SESSION_TTL_MINUTES,
+  };
+  const { gate, errors: startupErrors } = gateConfigFrom(envForGate, host);
   const warnings: string[] = [];
-  const clarityId = env.EB_CLARITY_PROJECT_ID?.trim();
+  const clarityId = pick(env, "EB_CLARITY_PROJECT_ID", "OPTOM_CLARITY_PROJECT_ID", "VITE_CLARITY_PROJECT_ID")?.trim();
+  const clarityAllowLocalRaw = pick(env, "EB_ANALYTICS_ALLOW_LOCAL", "OPTOM_ANALYTICS_ALLOW_LOCAL", "VITE_CLARITY_ALLOW_LOCAL");
   let analytics: Config["analytics"] = null;
   if (clarityId) {
-    if (/^[a-z0-9]{6,20}$/i.test(clarityId)) analytics = { provider: "clarity", projectId: clarityId, allowLocal: env.EB_ANALYTICS_ALLOW_LOCAL === "true" };
-    else warnings.push("EB_CLARITY_PROJECT_ID does not look like a Clarity project id. Analytics stays off.");
+    if (/^[a-z0-9]{6,20}$/i.test(clarityId)) analytics = { provider: "clarity", projectId: clarityId, allowLocal: clarityAllowLocalRaw === "true" };
+    else warnings.push("Clarity project id does not look like a Clarity project id. Analytics stays off.");
   }
   return {
     mode,
@@ -76,8 +120,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     extractor,
     anthropicApiKey: env.ANTHROPIC_API_KEY,
     llmModel: env.EB_LLM_MODEL ?? "claude-sonnet-5-5",
-    requestingProviderOrgId: env.EB_REQUESTING_PROVIDER_ORG ?? "SYN-ORG-ORTHO-100",
-    maxRunAgeHours: positiveNumber(env.EB_MAX_RUN_AGE_HOURS, 24, "EB_MAX_RUN_AGE_HOURS", errors),
+    requestingProviderOrgId: pick(env, "EB_REQUESTING_PROVIDER_ORG", "OPTOM_REQUESTING_PROVIDER_ORG") ?? "SYN-ORG-ORTHO-100",
+    maxRunAgeHours: positiveNumber(pick(env, "EB_MAX_RUN_AGE_HOURS", "OPTOM_MAX_RUN_AGE_HOURS"), 24, "EB_MAX_RUN_AGE_HOURS", errors),
+    allowDemoReset: allowDemoResetFrom(env),
     gate,
     analytics,
     warnings,

@@ -156,6 +156,7 @@ export function createApp(opts: { db: Db; config: Config; extractor?: EvidenceEx
   });
 
   api.post("/scenarios/:id/load", requireRole("pa-specialist", "sim-admin"), (req, res) => {
+    if (!config.allowDemoReset) return void res.status(403).json({ error: "demo reset is disabled on this instance" });
     const sc = loadScenario(db, String(req.params.id));
     log("info", "scenario loaded", { scenario: sc.id });
     res.json({ active: sc.id, scenario: sc });
