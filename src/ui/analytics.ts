@@ -40,6 +40,10 @@ export function writeConsent(storage: Pick<Storage, "setItem"> | null, c: "grant
 
 let active = false;
 let target: Win | null = null;
+/** True when the tag script failed to load (offline, tracker blocker) instead of installing. */
+let loadFailed = false;
+
+export function didInstallFail(): boolean { return loadFailed; }
 
 /** Official Clarity loader pattern (queue stub + async tag). Returns false if already installed on this page. */
 export function installClarity(win: Win, doc: Document, projectId: string): boolean {
@@ -64,6 +68,7 @@ export function installClarity(win: Win, doc: Document, projectId: string): bool
     t.remove();
     win.__ebClarityInstalled = false;
     active = false;
+    loadFailed = true;
   };
   doc.head.appendChild(t);
   // No ad storage in this app. Analytics storage only because the visitor chose "Allow".
@@ -107,4 +112,4 @@ export function eventsFor(action: string, result: unknown): AnalyticsEvent[] {
 }
 
 /** For tests only. */
-export function _resetForTests(): void { active = false; target = null; }
+export function _resetForTests(): void { active = false; target = null; loadFailed = false; }

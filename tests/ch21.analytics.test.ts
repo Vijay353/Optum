@@ -1,6 +1,6 @@
 /** V3 CH-21: analytics only after entry and consent; fixed event names; masking; silent no-op without an id. */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { EVENTS, _resetForTests, environmentAllows, eventsFor, installClarity, readConsent, track, trackEntered, withdraw, writeConsent } from "../src/ui/analytics";
+import { EVENTS, _resetForTests, didInstallFail, environmentAllows, eventsFor, installClarity, readConsent, track, trackEntered, withdraw, writeConsent } from "../src/ui/analytics";
 import { loadConfig } from "../src/server/config";
 import { api, startTestServer, type TestEnv } from "./helpers";
 
@@ -55,6 +55,15 @@ describe("loader and events", () => {
     expect(installClarity(d.win as never, d.doc, "ebtest01")).toBe(false);
     expect(d.scripts).toEqual([expect.objectContaining({ id: "clarity-script", src: "https://www.clarity.ms/tag/ebtest01", async: true })]);
     expect(d.calls()).toEqual([["consentv2", { ad_Storage: "denied", analytics_Storage: "granted" }]]);
+  });
+
+  it("reports a failed tag load so the UI can say so instead of failing silently", () => {
+    const d = fakeDom();
+    expect(didInstallFail()).toBe(false);
+    installClarity(d.win as never, d.doc, "ebtest01");
+    expect(didInstallFail()).toBe(false);
+    d.scripts[0]!.onerror!();
+    expect(didInstallFail()).toBe(true);
   });
 
   it("a failed tag load drops the dead element so a later visit can retry", () => {

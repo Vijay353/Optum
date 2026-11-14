@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { apiClient, getRole, setRole, type Health, type Role } from "./api";
 import { EvidenceBridgePage } from "./EvidenceBridgePage";
 import { DataStudio } from "./DataStudio";
-import { environmentAllows, installClarity, readConsent, trackEntered, withdraw, writeConsent, type Consent } from "./analytics";
+import { didInstallFail, environmentAllows, installClarity, readConsent, trackEntered, withdraw, writeConsent, type Consent } from "./analytics";
 
 const storage = (kind: "localStorage" | "sessionStorage"): Storage | null => {
   try { return window[kind]; } catch { return null; }
@@ -16,6 +16,7 @@ export function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [consent, setConsent] = useState<Consent>(() => readConsent(storage("localStorage")));
+  const [analyticsBlocked, setAnalyticsBlocked] = useState(false);
   const analytics = health?.analytics ?? null;
   const analyticsAvailable = environmentAllows(analytics, { hostname: window.location.hostname, webdriver: navigator.webdriver === true });
 
@@ -24,6 +25,9 @@ export function App() {
     if (!analyticsAvailable || consent !== "granted" || !analytics) return;
     installClarity(window as never, document, analytics.projectId);
     trackEntered(storage("sessionStorage"));
+    // If the tag failed (tracker blocker, offline), say so in the footer instead of failing silently.
+    const t = window.setTimeout(() => { if (didInstallFail()) setAnalyticsBlocked(true); }, 5000);
+    return () => window.clearTimeout(t);
   }, [analyticsAvailable, consent, analytics]);
 
   const choose = (c: "granted" | "denied") => {
@@ -107,6 +111,9 @@ export function App() {
         Synthetic records only · Mode {health?.mode ?? "…"} · Extractor {health?.extractor ?? "…"} · The synthetic policy is fictional and is not InterQual, Optum CES or any payer policy.
         {analyticsAvailable && consent !== null && (
           <> · Analytics {consent === "granted" ? "on" : "off"}{" "}
+            {consent === "granted" && analyticsBlocked && (
+              <span role="note"> (couldn&apos;t load — a tracker blocker or adblocker may be stopping it; allow clarity.ms for this site)</span>
+            )}{" "}
             <button className="btn link" onClick={() => choose(consent === "granted" ? "denied" : "granted")}>
               {consent === "granted" ? "Turn off analytics" : "Turn on analytics"}
             </button>
