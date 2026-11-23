@@ -1,7 +1,9 @@
 /** Browser API client. Holds no business state — everything is read from the server. */
 import type { Run } from "../orchestrator/runTypes";
 import type { EvidenceCheck } from "../orchestrator/evidenceChecks";
-export type { EvidenceCheck };
+import type { WorklistItem } from "../server/worklist";
+import type { Metrics } from "../server/metrics";
+export type { EvidenceCheck, WorklistItem, Metrics };
 
 export type Role = "pa-specialist" | "viewer" | "sim-admin";
 let role: Role = "pa-specialist";
@@ -49,13 +51,15 @@ export type RunSummary = { runId: string; createdAt: string; eventId: string; de
 export type SourceHistory = { sourceOrgId: string; windowDays: number; draftsChecked: number; taskCreated: number; manualReview: number; waitingForStaging: number; noTaskOther: number };
 export type TaskDue = { taskId: string; owner: string; state: "ON_TIME" | "DUE_SOON" | "OVERDUE"; dueAt: string; hoursLeft: number; hoursOverdue: number };
 export type Workspace = { scenario: Scenario | null; draftId: string; draft: Draft | null; tasks: TaskRes[]; taskDue: TaskDue[]; sourceHistory: SourceHistory | null; runHistory: RunSummary[]; evidenceChecks: EvidenceCheck[]; limits: { maxRunAgeHours: number }; run: Run | null; faults: Record<string, unknown>; clock: ClockState };
-export type Health = { ok: boolean; mode: string; extractor: string | null; configErrors: string[]; accessGate?: boolean; analytics?: import("./analytics").AnalyticsSettings };
+export type Health = { ok: boolean; mode: string; extractor: string | null; configErrors: string[]; accessGate?: boolean; uiMode?: "demo" | "pitch"; analytics?: import("./analytics").AnalyticsSettings };
 
 export const apiClient = {
   health: () => req<Health>("GET", "/api/health"),
   scenarios: () => req<{ active: string | null; scenarios: Scenario[] }>("GET", "/api/scenarios"),
   loadScenario: (id: string) => req<{ active: string }>("POST", `/api/scenarios/${id}/load`),
-  workspace: () => req<Workspace>("GET", "/api/workspace"),
+  workspace: (draftId?: string | null) => req<Workspace>("GET", `/api/workspace${draftId ? `?draftId=${encodeURIComponent(draftId)}` : ""}`),
+  worklist: () => req<{ items: WorklistItem[] }>("GET", "/api/worklist"),
+  metrics: () => req<{ metrics: Metrics; computedAt: string; source: string }>("GET", "/api/metrics"),
   check: (draftId: string) => req<{ run: Run }>("POST", `/api/drafts/${draftId}/check`),
   stage: (runId: string) => req<{ run: Run }>("POST", `/api/runs/${runId}/stage`),
   advanceClock: (hours: number) => req<ClockState>("POST", "/api/clock/advance", { hours }),

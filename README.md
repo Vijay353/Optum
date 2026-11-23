@@ -38,15 +38,18 @@ Production-style single process: `npm start` (builds the UI, serves everything o
 
 ## Three-minute demo
 
-1. **Data Studio → “sample workbook (.xlsx)”.** Open it in Excel: README sheet, one sheet per entity. On `patient_opt_out`, leave everything as is for now.
-2. **Evidence review → scenario “1. Primary success” → Load & reset → Run evidence check.** The EHR simulator emits `PriorAuthDraftCreated`; the orchestrator loads the draft, finds the PT documentation gap, checks Provider Access permission, pulls 12 claim lines (leads only), finds one HIE discharge summary, verifies its SHA-256, matches the patient, extracts five cited facts and returns `REVIEW_EXTERNAL_EVIDENCE`.
-3. **View exact cited paragraph** — the highlighted spans are the exact offsets the extractor cited, re-verified against the text.
-4. **Stage evidence review task.** One `createEvidenceReviewTask` call writes a FHIR-like Task in the mock EHR; the Task and draft are read back independently (16 checks) and the screen shows `DRAFT_INCOMPLETE → EVIDENCE_REVIEW_PENDING`, Task `TASK-EVID-1042`, duplicate `false`, chart mutation `NONE`, payer submission `NONE`.
-5. The scenario bar shows **Scenario time** (fixed at Oct 18, 2026 13:10 UTC for every fixture, so results do not drift with the calendar). **Demo controls → Move scenario time forward 25 hours**, then Stage: the check is now too old and nothing is written.
-6. **Demo controls → Redeliver the same event → Stage** → same task, `duplicate: true`. **Simulate another user editing the draft** before staging → the write fails closed with `REEVALUATION_REQUIRED`.
-7. **Technical evidence** (collapsed) — the real trace: every HTTP call to every simulator, policy input/output, tool payload/result, readback checks, audit. **Export audit evidence package (JSON)** downloads one file for the run with a named evidence status and a SHA-256 checksum (not a signature); check it with `npx tsx scripts/verifyEvidencePackage.ts <file>`.
-8. **Excel → workflow:** set `optedOut` to `TRUE` for `SYN-PAT-1042` in the workbook (or `patient_opt_out.csv`), **Data Studio → Validate & preview → Commit**, then **Run evidence check** again → `ACCESS_NOT_PERMITTED`; no claims or HIE requests are made. **Restore before** in the import history undoes it.
-9. Try the other scenarios: claims only, opt-out, ambiguous match, patient mismatch, prompt injection, superseded policy, Provider Access timeout, HIE outage, hash mismatch, concurrent edit, lost response + safe retry, 429 recovery, readback mismatch, and (opt-in, V3) a second summary for the same period.
+The Evidence review screen is a **queue**: drafts on the left, grouped by what each needs; the selected draft on the right with one next step and one primary button. Scenario loading and failure drills live in the dashed **Demo Lab** strip at the top (hidden in pitch mode).
+
+1. **Check all waiting drafts (8).** Runs the same read-only check on every draft in the base data; nothing is staged. The queue sorts itself: *Needs you* (evidence ready, request records, a person must look, check again), *No action possible* (outside records not allowed).
+2. **Draft 99412 → Evidence ready for you.** The EHR simulator emitted `PriorAuthDraftCreated`; EvidenceBridge found the PT documentation gap, checked Provider Access permission, pulled 12 claim lines (leads only), found one HIE discharge summary, verified its SHA-256, matched the patient and extracted five cited facts. **View exact cited paragraph** shows the exact cited offsets.
+3. **Stage evidence review task → Yes, create the review task.** The confirmation sheet restates what will and will not happen. One `createEvidenceReviewTask` call writes a FHIR-like Task; it is read back independently (16 checks): draft now *Evidence review pending*, chart changed *No*, sent to payer *No*.
+4. **Print evidence summary** (browser print or Save as PDF) and **See why** (plain-language reasons from the rules that ran). Codes, the trace and the JSON audit package with its SHA-256 digest are under **› Technical evidence**.
+5. **Metrics** tab: counts computed from the run records, plus one clearly labelled ESTIMATE with its formula and an editable assumption.
+6. **Demo Lab → Open the lab:** *Move scenario time forward 25 hours* then Stage → the check is too old and nothing is written. *Redeliver the same event* → same task, no duplicate. *Simulate another user editing the draft* → the write fails closed.
+7. **Excel → workflow:** set `optedOut` to `TRUE` for `SYN-PAT-1042` in the sample workbook, **Data Studio → Validate & preview → Commit**, then run the check again → *Outside records not allowed*; no claims or HIE requests are made. **Restore before** in the import history undoes it.
+8. Load the other scenarios from the Demo Lab: claims only, opt-out, ambiguous match, patient mismatch, prompt injection, superseded policy, Provider Access timeout, HIE outage, hash mismatch, concurrent edit, lost response + safe retry, 429 recovery, read-back mismatch and (opt-in) a second summary for the same period.
+
+**Pitch mode:** `EB_UI_MODE=pitch` (or `?mode=pitch`) hides the Demo Lab, the Data Studio tab and the identity switch and shows a four-step guided tour that ticks steps from real state. `?mode=demo` restores everything for Q&A.
 
 ## Operating modes
 
@@ -81,7 +84,9 @@ src/simulators    mock EHR, Provider Access, HIE, policy (Express routers)
 src/persistence   SQLite, task/idempotency/audit/run stores
 src/data          dataset contract, workbook schema, XLSX/CSV parse/build, import pipeline
 src/server        composition root, API, scenarios, config, logger
-src/ui            React UI: EvidenceBridgePage, TechnicalInspector, CitationViewer, DataStudio
+src/ui            React UI: EvidenceBridgePage (queue + next step), Worklist, WhyPanel, ConfirmSheet,
+                  DemoLab, EvidencePacket, Metrics, GuidedTour, TechnicalInspector, CitationViewer,
+                  DataStudio; pure presentation modules copy.ts, worklist.ts, why.ts, pitch.ts, metricsText.ts
 fixtures/         base synthetic dataset + 15 scenario definitions
 data/templates/   sample workbook, CSVs, invalid examples, SCHEMA.md
 tests/ e2e/       Vitest (unit/integration/contract) and Playwright
@@ -96,4 +101,4 @@ docs/             architecture, contracts, guides, traceability, status, test re
 - **Stale local state** — `npm run seed` or “Load & reset” in the UI. The database lives in `data/runtime/` (git-ignored).
 - **E2E browser missing** — `npx playwright install chromium`, or set `EB_CHROMIUM_PATH` to an existing Chromium.
 
-Docs: [Architecture](docs/ARCHITECTURE.md) · [Simulator contracts](docs/SIMULATOR-CONTRACTS.md) · [Data import](docs/DATA-IMPORT-GUIDE.md) · [Integrations](docs/INTEGRATIONS.md) · [Traceability](docs/REQUIREMENTS-TRACEABILITY.md) · [Status](docs/IMPLEMENTATION-STATUS.md) · [Test report](docs/TEST-REPORT.md) · [Decisions](docs/DECISION-LOG.md) · [Case study](docs/PORTFOLIO-CASE-STUDY.md) · [Interview guide](docs/INTERVIEW-GUIDE.md)
+Docs: [Product enhancement plan](docs/PRODUCT-ENHANCEMENT-PLAN.md) · [Completion report](docs/PRODUCT-COMPLETION-REPORT.md) · [Architecture](docs/ARCHITECTURE.md) · [Simulator contracts](docs/SIMULATOR-CONTRACTS.md) · [Data import](docs/DATA-IMPORT-GUIDE.md) · [Integrations](docs/INTEGRATIONS.md) · [Traceability](docs/REQUIREMENTS-TRACEABILITY.md) · [Status](docs/IMPLEMENTATION-STATUS.md) · [Test report](docs/TEST-REPORT.md) · [Decisions](docs/DECISION-LOG.md) · [Case study](docs/PORTFOLIO-CASE-STUDY.md) · [Interview guide](docs/INTERVIEW-GUIDE.md)

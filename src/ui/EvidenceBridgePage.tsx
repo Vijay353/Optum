@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { eventsFor, track } from "./analytics";
-import { ApiError, apiClient, type EvidenceCheck, type Role, type RunSummary, type Scenario, type SourceHistory, type TaskDue, type Workspace } from "./api";
+import { ApiError, apiClient, type EvidenceCheck, type Role, type RunSummary, type Scenario, type SourceHistory, type TaskDue, type WorklistItem, type Workspace } from "./api";
 import type { Run } from "../orchestrator/runTypes";
 import { TechnicalInspector } from "./TechnicalInspector";
 import { projectStaging, type StagingProjection } from "./projection";
@@ -10,68 +10,119 @@ import { eligibleDemoSwitch } from "./roleSwitch";
 import { STATE_MARK, STATE_TEXT, stepperFor } from "./stepper";
 import { policyProvenance } from "./provenance";
 import { CitationViewer } from "./CitationViewer";
+import { Worklist } from "./Worklist";
+import { defaultSelection, nextNeedingYou, uncheckedDrafts } from "./worklist";
+import { ConfirmSheet } from "./ConfirmSheet";
+import { WhyPanel } from "./WhyPanel";
+import { DemoLab } from "./DemoLab";
+import { EvidencePacket } from "./EvidencePacket";
+import { GuidedTour } from "./GuidedTour";
+import { tourSteps, type UiMode } from "./pitch";
+import { PACKET, STAGE, START, STATUS_WORD, draftStatusWords, outcomeWords } from "./copy";
+import { ErrorNote, Skeleton } from "./states";
 
 type Tone = "ok" | "warn" | "bad" | "info" | "neutral";
 
+/** Layer 0 headlines. h1 titles are unchanged (e2e contract); banners and subs are plain language (Product P4). */
 const HEADLINE: Record<string, { title: string; tone: Tone; banner: string; sub: string }> = {
   REVIEW_EXTERNAL_EVIDENCE: {
     title: "External PT evidence found — review before submission",
     tone: "ok",
-    banner: "Candidate external documentation is available",
-    sub: "Claims identified the source; an HIE discharge summary contains cited facts that require provider review.",
+    banner: "Outside physical therapy records were found",
+    sub: "Insurance claims pointed to an outside clinic, and its discharge summary was found. Its facts are quoted word for word. A person should review it before the request is submitted.",
   },
   CLAIM_LEAD_ONLY: {
     title: "Claim leads found — no clinical document yet",
     tone: "warn",
-    banner: "Follow up with the external provider",
-    sub: "Claims show billed services at an outside clinic, but no clinical document was found. Claims do not prove completion or outcome.",
+    banner: "Ask the outside clinic for the therapy notes",
+    sub: "Claims show therapy was billed at an outside clinic, but no clinical document was found. A bill does not prove the therapy was completed.",
   },
   ACCESS_NOT_PERMITTED: {
     title: "External retrieval not permitted",
     tone: "bad",
-    banner: "No external data was requested",
-    sub: "Provider Access sharing is not permitted for this patient and provider. Obtain records through the usual channels.",
+    banner: "No outside records were requested",
+    sub: "This patient's sharing choice or the payer's records do not allow an outside search for this provider. Use your usual records request.",
   },
   SOURCE_UNAVAILABLE: {
     title: "External source unavailable — nothing was evaluated",
     tone: "bad",
-    banner: "A source did not respond after bounded retries",
-    sub: "No evidence was evaluated and nothing was written. Try again later or obtain records manually.",
+    banner: "An outside source did not answer",
+    sub: "It was tried a few times. No evidence was evaluated and nothing was written. Try again later or request records by hand.",
   },
   MANUAL_REVIEW: {
     title: "Candidate evidence needs manual review",
     tone: "warn",
-    banner: "The document could not be verified automatically",
-    sub: "Provenance, patient match or extraction checks did not pass. The document is not attached and no task is created by this slice.",
+    banner: "A person needs to look at the document",
+    sub: "One of the safety checks (document unchanged, same patient, exact quotes) did not pass. The document was not attached and no task was created.",
   },
   INSUFFICIENT_EVIDENCE: {
     title: "Evidence cannot be used as found",
     tone: "warn",
-    banner: "Insufficient evidence for automated staging",
-    sub: "A version, patient or lookback check failed. Nothing was written.",
+    banner: "The evidence cannot be used as found",
+    sub: "A version, patient or date check did not pass. Nothing was written.",
   },
 };
 
-export function EvidenceBridgePage({ role, mode = null, onSwitchRole }: { role: Role; mode?: string | null; onSwitchRole?: (r: Role) => void }) {
+export function EvidenceBridgePage({ role, mode = null, onSwitchRole, uiMode = "demo", selectedDraft, onSelectDraft }: {
+  role: Role;
+  mode?: string | null;
+  onSwitchRole?: (r: Role) => void;
+  uiMode?: UiMode;
+  selectedDraft: string | null;
+  onSelectDraft: (id: string | null) => void;
+}) {
   const [ws, setWs] = useState<Workspace | null>(null);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
-  const [selected, setSelected] = useState<string>("");
+  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  const [pickScenario, setPickScenario] = useState<string>("");
+  const [items, setItems] = useState<WorklistItem[] | null>(null);
+  const [wlError, setWlError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showCitations, setShowCitations] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [packet, setPacket] = useState(false);
+  const [packetOpened, setPacketOpened] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [tourHidden, setTourHidden] = useState(() => { try { return window.sessionStorage.getItem("eb.tour.hidden") === "1"; } catch { return false; } });
+  const [tourError, setTourError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    const [w, s] = await Promise.all([apiClient.workspace(), apiClient.scenarios()]);
-    setWs(w);
-    setScenarios(s.scenarios);
-    setSelected((cur) => cur || s.active || s.scenarios[0]?.id || "");
+  /** The draft the last refresh loaded, so choosing the default selection does not load it twice. */
+  const loaded = useRef<string | null | undefined>(undefined);
+
+  const loadWorklist = useCallback(async () => {
+    try {
+      const wl = await apiClient.worklist();
+      setItems(wl.items);
+      setWlError(null);
+      return wl.items;
+    } catch (e) {
+      setWlError((e as Error).message);
+      return null;
+    }
   }, []);
 
-  useEffect(() => {
-    refresh().catch((e: Error) => setError(e.message));
-  }, [refresh]);
+  const refresh = useCallback(async (draftId: string | null) => {
+    const [list, s] = await Promise.all([loadWorklist(), apiClient.scenarios()]);
+    setScenarios(s.scenarios);
+    setActiveScenario(s.active);
+    setPickScenario((cur) => cur || s.active || s.scenarios[0]?.id || "");
+    const target = draftId ?? (list ? defaultSelection(list) : null);
+    const w = await apiClient.workspace(target);
+    loaded.current = w.draftId;
+    setWs(w);
+    setLoadError(null);
+    if (!draftId && target) onSelectDraft(target);
+  }, [loadWorklist, onSelectDraft]);
 
-  const act = async (label: string, fn: () => Promise<unknown>) => {
+  useEffect(() => {
+    // Load on mount and whenever the user picks another draft.
+    if (selectedDraft !== null && selectedDraft === loaded.current) return;
+    refresh(selectedDraft).catch((e: Error) => setLoadError(e.message));
+  }, [refresh, selectedDraft]);
+
+  const act = async (label: string, fn: () => Promise<unknown>, after: string | null = selectedDraft) => {
     setBusy(label);
     setError(null);
     try {
@@ -80,208 +131,254 @@ export function EvidenceBridgePage({ role, mode = null, onSwitchRole }: { role: 
     } catch (e) {
       setError(e instanceof ApiError ? `${e.message}` : (e as Error).message);
     } finally {
-      await refresh().catch(() => undefined);
+      await refresh(after).catch(() => undefined);
       setBusy(null);
     }
   };
 
-  if (!ws) {
-    return <div className="loading" role="status">{error ? `Could not load workspace: ${error}` : "Loading workspace…"}</div>;
-  }
+  /** Product P3: read-only bulk check. One existing /check call per unchecked draft, in order; never stages. */
+  const checkAll = async () => {
+    if (!items) return;
+    const ids = uncheckedDrafts(items);
+    setBusy("check-all");
+    setError(null);
+    setProgress({ done: 0, total: ids.length });
+    const failed: string[] = [];
+    for (let i = 0; i < ids.length; i++) {
+      try { await apiClient.check(ids[i]!); } catch (e) { failed.push(`${ids[i]}: ${(e as Error).message}`); }
+      setProgress({ done: i + 1, total: ids.length });
+      await loadWorklist();
+    }
+    if (ids.length) track("evidence_check_run");
+    setProgress(null);
+    if (failed.length) setError(`Some checks did not run: ${failed.join("; ")}`);
+    await refresh(selectedDraft).catch(() => undefined);
+    setBusy(null);
+  };
+
+  if (loadError && !ws) return <ErrorNote what="This draft could not be loaded." detail={loadError} onRetry={() => refresh(selectedDraft).catch((e: Error) => setLoadError(e.message))} />;
+  if (!ws) return <div className="review-layout"><Skeleton lines={6} label="Loading workspace" /></div>;
 
   const run = ws.run;
   const draft = ws.draft;
-  const decision = run?.policyResult?.decision ?? null;
   const canStage = role === "pa-specialist" && (run?.status === "AWAITING_CONFIRMATION" || run?.status === "FAILED_RETRYABLE");
   const headline = pickHeadline(run);
   const stepper = stepperFor(run);
+  const projection = run ? projectStaging(run, ws.limits.maxRunAgeHours) : null;
+  const pitch = uiMode === "pitch";
+  const steps = tourSteps({ items: items ?? [], selectedStatus: run?.status ?? null, packetOpened });
+  const next = items ? nextNeedingYou(items, ws.draftId) : null;
+
+  const loadScenario = (id: string) => act("load", async () => {
+    const out = await apiClient.loadScenario(id);
+    onSelectDraft(null);
+    return out;
+  }, null);
 
   return (
-    <div className="page">
-      <section className="scenario-bar" aria-label="Demo scenario">
-        <div className="scenario-pick">
-          <label htmlFor="scenario">Synthetic scenario</label>
-          <div className="row">
-            <select id="scenario" value={selected} onChange={(e) => setSelected(e.target.value)}>
-              {scenarios.map((s) => (
-                <option key={s.id} value={s.id}>{s.order}. {s.title}</option>
-              ))}
-            </select>
-            <button className="btn secondary" disabled={!!busy || role === "viewer"} onClick={() => act("load", () => apiClient.loadScenario(selected))}>
-              {busy === "load" ? "Resetting…" : "Load & reset"}
-            </button>
-          </div>
-          <p className="hint">{scenarios.find((s) => s.id === selected)?.description} Loading resets all simulators to deterministic fixtures.</p>
-          <p className="hint clock-line">
-            {ws.clock.mode === "scenario" ? "Scenario time" : "System time"}: <strong>{fmtDateTime(ws.clock.now)}</strong>
-            {ws.clock.mode === "scenario" && (ws.clock.offsetMs > 0 ? ` (moved forward ${Math.round(ws.clock.offsetMs / 3600_000)} h for the demo)` : " (fixed start for this scenario)")}
-          </p>
-        </div>
-        <div className="stepper-wrap">
-          <ol className="stepper" aria-label="Progress">
-            {stepper.steps.map((s, i) => (
-              <li key={s.label} className={s.state} aria-current={s.state === "current" ? "step" : undefined}>
-                <span aria-hidden="true">{STATE_MARK[s.state] || i + 1}</span>
-                {s.label}
-                <span className="sr-only"> ({STATE_TEXT[s.state]})</span>
-              </li>
-            ))}
-          </ol>
-          {stepper.outcome && <p className="stepper-outcome">{stepper.outcome}</p>}
-        </div>
-      </section>
-
-      <section className="header-row">
-        <div>
-          <h1>{headline.title}</h1>
-          <p className="meta">
-            Draft <strong>{ws.draftId}</strong>
-            {draft && <> · v{draft.version} · {draft.businessStatus}</>}
-            {" "}· Synthetic patient <strong>{draft?.patientId ?? "—"}</strong>
-            {run?.context && <> · Age band {run.context.patientAgeBand} · {run.context.serviceRequestDescription}</>}
-          </p>
-        </div>
-        <div className="safety-badge" role="note" aria-label="Safety boundary: no payer submission">
-          <span className="dot" aria-hidden="true" />
-          <span><small>SAFETY BOUNDARY</small><strong>NO PAYER SUBMISSION</strong></span>
-        </div>
-      </section>
-
-      {error && <div className="alert bad" role="alert">{error}</div>}
-
-      {!run && (
-        <section className="start-panel">
-          <h2>Start the pre-submission evidence check</h2>
-          <p>
-            This emits the EHR's <code>PriorAuthDraftCreated</code> event for <strong>{ws.draftId}</strong>. EvidenceBridge then checks the synthetic
-            documentation checklist, verifies Provider Access permission, looks for external evidence and returns a deterministic decision.
-            Nothing is written and nothing is sent to a payer during the check.
-          </p>
-          <button className="btn primary" disabled={!!busy || role !== "pa-specialist"} onClick={() => act("check", () => apiClient.check(ws.draftId))}>
-            {busy === "check" ? "Checking sources…" : "Run evidence check"}
-          </button>
-          <DemoSwitch role={role} mode={mode} run={null} onSwitch={onSwitchRole} />
-        </section>
+    <div className="review-layout">
+      {!pitch && (
+        <DemoLab
+          scenarios={scenarios}
+          selected={pickScenario}
+          onSelect={setPickScenario}
+          activeId={activeScenario}
+          clock={ws.clock}
+          busy={busy}
+          canLoad={role !== "viewer"}
+          canDrill={role === "pa-specialist"}
+          onLoad={() => loadScenario(pickScenario)}
+          onRedeliver={() => act("check", () => apiClient.check(ws.draftId))}
+          onEdit={() => act("edit", () => apiClient.simulateEdit(ws.draftId))}
+          onAdvance={() => act("clock", () => apiClient.advanceClock(25))}
+          fmt={fmtDateTime}
+        />
+      )}
+      {pitch && !tourHidden && (
+        <GuidedTour
+          steps={steps}
+          busy={!!busy}
+          error={tourError}
+          onHide={() => { setTourHidden(true); try { window.sessionStorage.setItem("eb.tour.hidden", "1"); } catch { /* not remembered */ } }}
+          onStartFresh={() => { setTourError(null); setPacketOpened(false); apiClient.loadScenario("primary-success").then(() => { onSelectDraft(null); return refresh(null); }).catch((e: Error) => setTourError(e.message)); }}
+        />
       )}
 
-      {run && (
-        <>
-          <DecisionBanner run={run} headline={headline} />
-          <EvidenceChecks checks={ws.evidenceChecks} />
-          <div className="cards">
-            <MissingCard run={run} draftVersion={draft?.version ?? null} />
-            <FoundCard run={run} history={ws.sourceHistory} onShowCitations={() => setShowCitations(true)} />
-            <NextCard run={run} />
-          </div>
+      <div className="review-grid">
+        <Worklist
+          items={items}
+          selected={ws.draftId}
+          onSelect={(id) => { setError(null); onSelectDraft(id); }}
+          onCheckAll={checkAll}
+          progress={progress}
+          canCheck={role === "pa-specialist"}
+          busy={!!busy}
+          error={wlError}
+        />
 
-          <section className="workflow" aria-label="Bounded evidence workflow">
+        <div className="detail" aria-label="Selected draft">
+          <section className="header-row">
             <div>
-              <h2>Bounded evidence workflow</h2>
-              <p className="muted">The system turns an unresolved documentation gap into owned review work without modifying the clinical chart.</p>
-              <div className="transition">
-                <div className="state before"><small>BEFORE</small><strong>{run.execution.stateChange?.from ?? run.context?.draft.businessStatus ?? "DRAFT_INCOMPLETE"}</strong></div>
-                <svg className="arrow" viewBox="0 0 60 20" aria-hidden="true"><path d="M2 10h52m-9-7 9 7-9 7" fill="none" stroke="currentColor" strokeWidth="2" /></svg>
-                <div className={`state after ${run.status === "COMPLETED" ? "reached" : ""}`}>
-                  <small>{run.status === "COMPLETED" ? "AFTER TOOL READBACK" : "TARGET"}</small>
-                  <strong>{decision === "REVIEW_EXTERNAL_EVIDENCE" || run.status === "COMPLETED" ? "EVIDENCE_REVIEW_PENDING" : run.outcomeState ?? "—"}</strong>
-                </div>
-              </div>
-            </div>
-            <div className="action-col">
-              {canStage ? (
-                <button className="btn primary big" disabled={!!busy} onClick={() => act("stage", () => apiClient.stage(run.runId))}>
-                  {busy === "stage" ? "Writing task and verifying…" : run.status === "FAILED_RETRYABLE" ? "Retry staging (same idempotency key)" : "Stage evidence review task"}
-                </button>
-              ) : (
-                <button className={`btn primary big ${run.status === "COMPLETED" ? "done" : ""}`} disabled aria-disabled="true">
-                  {run.status === "COMPLETED" ? "✓ Review task staged" : run.status === "AWAITING_CONFIRMATION" ? "PA specialist confirmation required" : "No task for this outcome"}
-                </button>
-              )}
-              <DemoSwitch role={role} mode={mode} run={run} onSwitch={onSwitchRole} />
-              <p className="hint">
-                {run.status === "AWAITING_CONFIRMATION" ? "Writes one FHIR-like Task and verifies it by reading it back." : run.status === "COMPLETED" ? "The Task was read back independently from the EHR." : "Only REVIEW_EXTERNAL_EVIDENCE creates a task."}
+              <p className="eyebrow">Prior-authorization draft</p>
+              <h1>{headline.title}</h1>
+              <p className="meta">
+                Draft <strong>{ws.draftId}</strong>
+                {draft && <> · version {draft.version} · {draftStatusWords(draft.businessStatus)}</>}
+                {" "}· Synthetic patient <strong>{draft?.patientId ?? "—"}</strong>
+                {run?.context && <> · age {run.context.patientAgeBand} · {run.context.serviceRequestDescription}</>}
               </p>
-              <button className="btn link" disabled={!!busy || role !== "pa-specialist"} onClick={() => act("check", () => apiClient.check(ws.draftId))}>
-                {busy === "check" ? "Checking…" : "Run the evidence check again"}
-              </button>
+            </div>
+            <div className="stepper-wrap">
+              <ol className="stepper" aria-label="Progress">
+                {stepper.steps.map((s, i) => (
+                  <li key={s.label} className={s.state} aria-current={s.state === "current" ? "step" : undefined}>
+                    <span aria-hidden="true">{STATE_MARK[s.state] || i + 1}</span>
+                    {s.label}
+                    <span className="sr-only"> ({STATE_TEXT[s.state]})</span>
+                  </li>
+                ))}
+              </ol>
+              {stepper.outcome && <p className="stepper-outcome">{stepper.outcome}</p>}
             </div>
           </section>
 
-          <div className="lower">
-            <ResultPanel run={run} due={ws.taskDue.find((d) => d.taskId === run.execution.result?.taskId) ?? null} projection={projectStaging(run, ws.limits.maxRunAgeHours)} />
-            <aside className="boundary">
-              <h3>Decision boundary</h3>
-              <dl>
-                <dt className="agent">AGENT</dt><dd>Extracts cited facts from one document; may abstain. Cannot call tools.</dd>
-                <dt className="policy">POLICY</dt><dd>Deterministic {run.policyResult?.policyVersion ?? "rules"}: access, provenance, versions, lookback.</dd>
-                <dt className="tool">TOOL</dt><dd>Creates one review Task only. No chart write, no submission.</dd>
-              </dl>
-            </aside>
-          </div>
+          {error && <div className="alert bad" role="alert"><p><strong>{error}</strong></p><p>Nothing else was changed.</p></div>}
 
-          <CheckHistory runs={ws.runHistory} current={run} />
-
-          <DemoControls
-            disabled={!!busy || role !== "pa-specialist"}
-            onRedeliver={() => act("check", () => apiClient.check(ws.draftId))}
-            onEdit={() => act("edit", () => apiClient.simulateEdit(ws.draftId))}
-            onAdvance={() => act("clock", () => apiClient.advanceClock(25))}
+          <NextStep
+            run={run}
+            headline={headline}
+            busy={busy}
+            role={role}
+            canStage={canStage}
+            onCheck={() => act("check", () => apiClient.check(ws.draftId))}
+            onStage={() => setConfirming(true)}
+            onPacket={() => { setPacket(true); setPacketOpened(true); }}
+            next={next && run && run.status !== "AWAITING_CONFIRMATION" && run.status !== "FAILED_RETRYABLE" ? { id: next.draftId, onGo: () => { setError(null); onSelectDraft(next.draftId); window.scrollTo({ top: 0 }); } } : null}
+            demoSwitch={<DemoSwitch role={role} mode={mode} run={run} onSwitch={onSwitchRole} />}
           />
-          <TechnicalInspector run={run} tasks={ws.tasks} faults={ws.faults} />
-          {showCitations && run.documentPages && run.extraction?.output && (
-            <CitationViewer pages={run.documentPages} facts={run.extraction.output.facts} documentId={run.document?.id ?? ""} onClose={() => setShowCitations(false)} />
+
+          {run && (
+            <>
+              <ResultPanel run={run} due={ws.taskDue.find((d) => d.taskId === run.execution.result?.taskId) ?? null} projection={projection} />
+              <EvidenceChecks checks={ws.evidenceChecks} />
+              <div className="cards">
+                <MissingCard run={run} draftVersion={draft?.version ?? null} />
+                <FoundCard run={run} history={ws.sourceHistory} onShowCitations={() => setShowCitations(true)} />
+                <NextCard run={run} />
+              </div>
+              <CheckHistory runs={ws.runHistory} current={run} />
+              <WhyPanel run={run} checks={ws.evidenceChecks} />
+              <TechnicalInspector run={run} tasks={ws.tasks} faults={ws.faults} checks={ws.evidenceChecks} />
+              {showCitations && run.documentPages && run.extraction?.output && (
+                <CitationViewer pages={run.documentPages} facts={run.extraction.output.facts} documentId={run.document?.id ?? ""} onClose={() => setShowCitations(false)} />
+              )}
+              {confirming && (
+                <ConfirmSheet
+                  p={projection}
+                  fmt={fmtDateTime}
+                  onCancel={() => setConfirming(false)}
+                  onConfirm={() => { setConfirming(false); void act("stage", () => apiClient.stage(run.runId)); }}
+                />
+              )}
+              {packet && <EvidencePacket run={run} checks={ws.evidenceChecks} generatedAt={fmtDateTime(ws.clock.now)} onClose={() => setPacket(false)} />}
+            </>
           )}
-        </>
-      )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+/** Layer 0: the one thing to do next, with one primary button and what it does. */
+function NextStep({ run, headline, busy, role, canStage, onCheck, onStage, onPacket, demoSwitch, next }: {
+  next: { id: string; onGo: () => void } | null;
+  run: Run | null;
+  headline: { tone: Tone; banner: string; sub: string };
+  busy: string | null;
+  role: Role;
+  canStage: boolean;
+  onCheck: () => void;
+  onStage: () => void;
+  onPacket: () => void;
+  demoSwitch: React.ReactNode;
+}) {
+  if (!run) {
+    return (
+      <section className="next-step neutral start-panel" aria-labelledby="next-h">
+        <div className="next-text">
+          <p className="eyebrow">Next step</p>
+          <h2 id="next-h">Check this draft for missing evidence</h2>
+          <p>{START.lead}</p>
+          <p className="muted">{START.safe}</p>
+        </div>
+        <div className="next-action">
+          <button className="btn primary big" disabled={!!busy || role !== "pa-specialist"} onClick={onCheck}>
+            {busy === "check" ? START.busy : START.button}
+          </button>
+          {demoSwitch}
+        </div>
+      </section>
+    );
+  }
+  const completed = run.status === "COMPLETED";
+  return (
+    <section className={`next-step banner ${headline.tone}`} aria-live="polite" aria-labelledby="next-h">
+      <div className="next-text">
+        <p className="eyebrow">{completed ? "Done" : "Next step"}</p>
+        <h2 id="next-h"><span className="banner-icon" aria-hidden="true">{headline.tone === "ok" ? "✓" : headline.tone === "bad" ? "!" : "i"}</span>{headline.banner || "Result"}</h2>
+        <p>{headline.sub}</p>
+      </div>
+      <div className="next-action">
+        {canStage ? (
+          <button className="btn primary big" disabled={!!busy} onClick={onStage}>
+            {busy === "stage" ? STAGE.busy : run.status === "FAILED_RETRYABLE" ? STAGE.retry : STAGE.button}
+          </button>
+        ) : (
+          <button className={`btn big ${completed ? "primary done" : "quiet"}`} disabled aria-disabled="true">
+            {completed ? STAGE.done : run.status === "AWAITING_CONFIRMATION" ? STAGE.needsRole : STAGE.none}
+          </button>
+        )}
+        <p className="hint">{canStage || run.status === "AWAITING_CONFIRMATION" ? STAGE.doesWhat : completed ? STAGE.doneWhat : STAGE.noneWhat}</p>
+        {demoSwitch}
+        <div className="next-links">
+          <button className="btn link" disabled={!!busy || role !== "pa-specialist"} onClick={onCheck}>
+            {busy === "check" ? "Checking…" : STAGE.again}
+          </button>
+          {run.policyResult && <button className="btn link" onClick={onPacket}>{PACKET.button}</button>}
+          <a className="btn link" href="#why">See why</a>
+        </div>
+        {next && <button className="btn secondary" onClick={next.onGo}>Next draft that needs you: {next.id.replace(/^PA-DRAFT-/, "Draft ")} ›</button>}
+      </div>
+    </section>
   );
 }
 
 function pickHeadline(run: Run | null) {
   if (!run) return { title: "Prior-authorization draft is waiting for an evidence check", tone: "neutral" as Tone, banner: "", sub: "" };
-  if (run.status === "COMPLETED") return { title: "Evidence review task staged and verified", tone: "ok" as Tone, banner: "Candidate external documentation is available", sub: HEADLINE.REVIEW_EXTERNAL_EVIDENCE!.sub };
+  if (run.status === "COMPLETED") return { title: "Evidence review task staged and verified", tone: "ok" as Tone, banner: "Review task created and checked", sub: "The task is with the PA specialist team. The draft now shows “Evidence review pending”. The chart was not changed and nothing went to the payer." };
   const refusal = run.execution.preWriteCheck?.refusal ?? null;
   if (refusal === "ACCESS_NOT_PERMITTED") {
-    return { title: "Staging stopped: access is no longer permitted", tone: "bad" as Tone, banner: "Consent or attribution changed after the check", sub: "The final check before writing found that Provider Access is no longer permitted. Nothing was written." };
+    return { title: "Staging stopped: access is no longer permitted", tone: "bad" as Tone, banner: "The patient's sharing choice changed after the check", sub: "The final check before writing found that outside records may no longer be used. Nothing was written." };
   }
   if (refusal === "RUN_TOO_OLD") {
-    return { title: "This check is too old to act on", tone: "warn" as Tone, banner: "Run the evidence check again", sub: "Evidence and consent can change over time, so an old result cannot be staged. Nothing was written." };
+    return { title: "This check is too old to act on", tone: "warn" as Tone, banner: "Run the evidence check again", sub: "Records and permissions can change, so an old result cannot be used to create a task. Nothing was written." };
   }
   if (refusal === "ACCESS_CHECK_UNAVAILABLE") {
-    return { title: "Could not confirm access before writing", tone: "bad" as Tone, banner: "The Provider Access check did not respond", sub: "Nothing was written. You can try staging again." };
+    return { title: "Could not confirm access before writing", tone: "bad" as Tone, banner: "The permission check did not answer", sub: "Nothing was written. You can try staging again." };
   }
   if (run.status === "REEVALUATION_REQUIRED" || run.outcomeState === "REEVALUATION_REQUIRED") {
-    return { title: "Draft changed — re-evaluation required", tone: "warn" as Tone, banner: "The write failed closed", sub: "The draft version or policy version no longer matches the evaluated context. Nothing was written." };
+    return { title: "Draft changed — re-evaluation required", tone: "warn" as Tone, banner: "The draft or checklist changed", sub: "The draft or its checklist version no longer matches what was checked, so nothing was written. Run the check again." };
   }
   if ((run.status === "FAILED" || run.status === "FAILED_RETRYABLE") && run.execution.confirmedBy) {
-    return { title: "Staging could not be verified", tone: "bad" as Tone, banner: "The task write was not confirmed", sub: "The run is not reported as successful until the readback matches. See the result panel below." };
+    return { title: "Staging could not be verified", tone: "bad" as Tone, banner: "The saved task could not be confirmed", sub: "It is not shown as done until the read-back matches. See the result below." };
   }
-  if (run.status === "FAILED" && !run.policyResult) return { title: "The evidence check failed", tone: "bad" as Tone, banner: "Run failed", sub: run.error ?? "" };
+  if (run.status === "FAILED" && !run.policyResult) return { title: "The evidence check failed", tone: "bad" as Tone, banner: "The check did not finish", sub: run.error ?? "" };
   if (run.policyResult?.ruleId === "R5_MULTIPLE_CANDIDATES") {
     return { title: "More than one candidate document found", tone: "warn" as Tone, banner: "Choose the right document before review", sub: "The same clinic has more than one summary for the same therapy period. This is often an amended copy. A person must decide which one applies; no task is created automatically." };
   }
-  if (run.status === "NO_GAP") return { title: "Requirement already present in the local chart", tone: "ok" as Tone, banner: "No external search needed", sub: "The synthetic checklist item is satisfied by a local document; no external retrieval was performed." };
+  if (run.status === "NO_GAP") return { title: "Requirement already present in the local chart", tone: "ok" as Tone, banner: "Nothing is missing", sub: "The checklist item is already in your chart, so no outside search was needed." };
   const d = run.policyResult?.decision ?? "MANUAL_REVIEW";
   return HEADLINE[d] ?? HEADLINE.MANUAL_REVIEW!;
-}
-
-function DecisionBanner({ run, headline }: { run: Run; headline: { tone: Tone; banner: string; sub: string } }) {
-  if (!headline.banner) return null;
-  return (
-    <section className={`banner ${headline.tone}`} aria-live="polite">
-      <span className="banner-icon" aria-hidden="true">{headline.tone === "ok" ? "✓" : headline.tone === "bad" ? "!" : "i"}</span>
-      <div>
-        <strong>{headline.banner}</strong>
-        <p>{headline.sub}</p>
-      </div>
-      {run.policyResult && (
-        <div className="decision-chip">
-          <small>DECISION</small>
-          <strong>{run.policyResult.decision}</strong>
-        </div>
-      )}
-    </section>
-  );
 }
 
 function Card({ n, title, eyebrow, heading, children }: { n: number; title: string; eyebrow: string; heading: string; children: React.ReactNode }) {
@@ -302,15 +399,16 @@ function MissingCard({ run, draftVersion }: { run: Run; draftVersion: number | n
   const ctx = run.context;
   const provenance = policyProvenance(run);
   const stale = draftVersion !== null && draftVersion !== run.event.draftVersion;
+  const local = ctx?.missingRequirement?.localStatus;
   return (
-    <Card n={1} title="What is missing" eyebrow={`SYNTHETIC POLICY · ${ctx?.policy.policyVersion ?? "—"}`} heading="Supervised PT documentation">
+    <Card n={1} title="What is missing" eyebrow="Synthetic checklist for this procedure" heading="Supervised PT documentation">
       <dl className="kv">
-        <dt>Local chart status</dt>
-        <dd className={ctx?.missingRequirement?.localStatus === "MISSING" ? "bad" : "good"}>{ctx?.missingRequirement?.localStatus ?? "—"}</dd>
-        <dt>Requirement version</dt>
-        <dd>{ctx ? `${ctx.policy.policyVersion.replace(/^SYN-SPINE-PA-/, "")} · ${ctx.policy.status}` : "—"}</dd>
+        <dt>In your chart</dt>
+        <dd className={local === "MISSING" ? "bad" : "good"}>{local === "MISSING" ? "Missing" : local === "PRESENT" ? "Present" : "—"}</dd>
+        <dt>Checklist in effect</dt>
+        <dd>{ctx ? (ctx.policy.status === "ACTIVE" ? "Current" : "Not current") : "—"}</dd>
         <dt>Draft version</dt>
-        <dd className={stale ? "bad" : ""}>{run.event.draftVersion}{draftVersion !== null ? (stale ? ` · now v${draftVersion}` : " · current") : ""}</dd>
+        <dd className={stale ? "bad" : ""}>{run.event.draftVersion}{draftVersion !== null ? (stale ? ` · now ${draftVersion}` : " · current") : ""}</dd>
       </dl>
       {provenance && (
         <details className="provenance">
@@ -320,10 +418,10 @@ function MissingCard({ run, draftVersion }: { run: Run; draftVersion: number | n
         </details>
       )}
       <div className="note warn">
-        <p className="note-title">WHY THE DRAFT IS HELD</p>
-        <p>No PT summary is available in the local EHR.</p>
-        <p>The system does not infer completion from claims.</p>
-        <p>Human review is required before evidence is added.</p>
+        <p className="note-title">Why the draft is on hold</p>
+        <p>No PT summary is in your chart.</p>
+        <p>Claims alone never count as proof.</p>
+        <p>A person reviews any evidence before it is used.</p>
       </div>
     </Card>
   );
@@ -337,41 +435,40 @@ function FoundCard({ run, history, onShowCitations }: { run: Run; history: Sourc
   const weeks = start && end ? Math.round((Date.parse(String(end)) - Date.parse(String(start))) / (7 * 864e5)) : null;
   const unavailable = run.trace.find((t) => t.step === "SOURCE_UNAVAILABLE");
   return (
-    <Card n={2} title="What was found" eyebrow={run.access?.decision === "PERMIT" ? "AUTHORIZED EXTERNAL SEARCH" : run.access ? "EXTERNAL SEARCH NOT PERMITTED" : "EXTERNAL SEARCH"} heading={run.document ? "Candidate PT evidence" : run.claims?.leadCount ? "Claim leads only" : "No external evidence"}>
+    <Card n={2} title="What was found" eyebrow={run.access?.decision === "PERMIT" ? "Outside search, permitted" : run.access ? "Outside search not permitted" : "Outside search"} heading={run.document ? "Candidate PT evidence" : run.claims?.leadCount ? "Claim leads only" : "No external evidence"}>
       {run.access && run.access.decision !== "PERMIT" && (
-        <div className="note bad"><p className="note-title">ACCESS DENIED BY PROVIDER ACCESS SERVER</p>{run.access.reasons.map((r) => <p key={r}>{r}</p>)}<p>No claims or HIE documents were requested.</p></div>
+        <div className="note bad"><p className="note-title">Access denied by the payer's permission check</p>{run.access.reasons.map((r) => <p key={r}>{r}</p>)}<p>No claims or HIE documents were requested.</p></div>
       )}
-      {unavailable && <div className="note bad"><p className="note-title">SOURCE UNAVAILABLE</p><p>{unavailable.summary}</p></div>}
+      {unavailable && <div className="note bad"><p className="note-title">Source unavailable</p><p>{unavailable.summary}</p></div>}
       {run.claims && (
         <div className="found-block">
-          <p className="tag lead">PAYER CLAIM LEADS</p>
-          <p>{run.claims.leadCount} adjudicated PT service line{run.claims.leadCount === 1 ? "" : "s"}</p>
+          <p className="tag lead">Insurance claims (leads only)</p>
+          <p>{run.claims.leadCount} billed PT visit line{run.claims.leadCount === 1 ? "" : "s"}</p>
           {run.claims.leadCount > 0 && <p className="muted">{fmtDate(run.claims.firstDate)}–{fmtDate(run.claims.lastDate)} · {run.claims.providerName}</p>}
           {history && <HistoryLine h={history} />}
         </div>
       )}
       {run.claims && (
         <div className="found-block">
-          <p className="tag doc">HIE CLINICAL DOCUMENT</p>
+          <p className="tag doc">Clinical document from the shared-record network</p>
           {run.document ? (
             <>
               <p>PT discharge summary · {run.document.id}</p>
               {run.candidates && run.candidates.length > 1 && <CandidateList candidates={run.candidates} />}
               {run.extraction?.output && !run.extraction.output.abstain ? (
-                <p>Extracted: {weeks !== null ? `${weeks}-week range` : "date range"} · {visits ?? "?"} documented visits</p>
+                <p>Found: {weeks !== null ? `${weeks}-week course` : "date range"} · {visits ?? "?"} documented visits</p>
               ) : (
-                <p className="warn-text">{run.extraction?.skippedReason ? `Not processed: ${run.extraction.skippedReason}` : "Extractor abstained — document is ambiguous"}</p>
+                <p className="warn-text">{run.extraction?.skippedReason ? `Not read: ${run.extraction.skippedReason}` : "The reader was not sure, so it did not extract facts"}</p>
               )}
               {run.claims && run.extraction?.output && !run.extraction.output.abstain && (
                 <CountBars c={compareCounts(run.claims.leadCount, typeof visits === "number" ? visits : null)} />
               )}
-
               {run.documentPages && run.extraction?.output && run.extraction.output.facts.length > 0 && (
                 <button className="btn link" onClick={onShowCitations}>View exact cited paragraph ↗</button>
               )}
             </>
           ) : (
-            <p className="muted">{run.claims.leadCount ? "No clinical document found for the lead provider and dates." : "No lead to search with."}</p>
+            <p className="muted">{run.claims.leadCount ? "No clinical document found for that clinic and those dates." : "No lead to search with."}</p>
           )}
         </div>
       )}
@@ -391,15 +488,15 @@ function NextCard({ run }: { run: Run }) {
   const d = run.policyResult?.decision;
   const createsTask = d === "REVIEW_EXTERNAL_EVIDENCE" && run.outcomeState === "EVIDENCE_REVIEW_PENDING";
   const items: string[] = createsTask
-    ? ["Owner: PA specialist queue", "Review source and patient match", "Decide whether evidence belongs in packet", "Request clarification when needed"]
+    ? ["Owner: PA specialist team", "Check the source and that it is the same patient", "Decide whether the evidence belongs in the request", "Ask for clarification when needed"]
     : nextStepsFor(run);
   return (
-    <Card n={3} title="What happens next" eyebrow={`DETERMINISTIC POLICY · ${run.policyResult?.policyVersion ?? "not evaluated"}${run.policyResult ? ` · ${run.policyResult.ruleId}` : ""}`} heading={createsTask ? "Create one review task" : "No task is created"}>
+    <Card n={3} title="What happens next" eyebrow={run.policyResult ? "Fixed rules: same answer every time" : "Not decided"} heading={createsTask ? "Create one review task" : "No task is created"}>
       <ul className="checklist">
         {items.map((i) => <li key={i} className={createsTask ? "ok" : "neutral"}>{i}</li>)}
       </ul>
       <div className="note ok">
-        <p className="note-title">ACTION BOUNDARY</p>
+        <p className="note-title">What this system never does</p>
         <p>No chart write · No payer submission</p>
         <p>No medical-necessity or approval prediction</p>
       </div>
@@ -410,17 +507,17 @@ function NextCard({ run }: { run: Run }) {
 function nextStepsFor(run: Run): string[] {
   switch (run.outcomeState) {
     case "CLAIM_SOURCE_FOLLOWUP":
-      return [`Request records from ${run.claims?.providerName ?? "the external provider"}`, "Do not state that therapy was completed", "Re-run the check when a document is available"];
+      return [`Request records from ${run.claims?.providerName ?? "the outside clinic"}`, "Do not state that therapy was completed", "Run the check again when a document is available"];
     case "ACCESS_NOT_PERMITTED":
-      return ["Respect the patient's sharing choice", "Obtain records through standard release channels", "No external data was retrieved"];
+      return ["Respect the patient's sharing choice", "Request records through your usual release process", "No outside data was retrieved"];
     case "SOURCE_UNAVAILABLE":
-      return ["Retry the evidence check later", "Escalate if the source stays unavailable", "Nothing was written"];
+      return ["Run the check again later", "Escalate if the source stays unavailable", "Nothing was written"];
     case "REEVALUATION_REQUIRED":
-      return ["Reload the current draft", "Run the evidence check again for the new version", "The stale write was rejected"];
+      return ["Reload the current draft", "Run the evidence check again for the new version", "The out-of-date write was refused"];
     case "MANUAL_REVIEW":
       return [...(run.policyResult?.reasons ?? []), "Do not attach the document automatically"];
     default:
-      return run.policyResult?.reasons ?? ["Review the technical evidence"];
+      return run.policyResult?.reasons ?? ["See Technical evidence for details"];
   }
 }
 
@@ -432,8 +529,8 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
       pre.refusal === "RUN_TOO_OLD"
         ? `This check was made ${pre.runAgeMinutes} minutes ago. The limit is ${pre.maxAgeMinutes} minutes. Run the evidence check again.`
         : pre.refusal === "ACCESS_NOT_PERMITTED"
-          ? `Provider Access is no longer permitted: ${(pre.access?.reasons ?? []).join(" ")}`
-          : "The Provider Access check did not respond, so permission could not be confirmed.";
+          ? `Outside records may no longer be used: ${(pre.access?.reasons ?? []).join(" ")}`
+          : "The permission check did not answer, so permission could not be confirmed.";
     return (
       <section className={`result ${pre.refusal === "RUN_TOO_OLD" ? "warn" : "bad"}`} role="alert">
         <h3><span className="banner-icon" aria-hidden="true">!</span>Final check stopped the write</h3>
@@ -447,14 +544,14 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
     return (
       <section className="result ok" aria-live="polite">
         <h3><span className="banner-icon" aria-hidden="true">✓</span>Task {ex.result.taskId} staged and verified</h3>
-        <p className="transition-text"><code>{ex.stateChange?.from}</code> → <code>{ex.stateChange?.to}</code>{ex.result.duplicate ? " (idempotent replay — no new task)" : ""}</p>
+        <p className="transition-text">Draft status: {draftStatusWords(ex.stateChange?.from)} → <strong>{draftStatusWords(ex.stateChange?.to)}</strong>{ex.result.duplicate ? " (the task made earlier was returned; no duplicate)" : ""}</p>
         <dl className="result-grid">
           <dt>Draft</dt><dd>{run.event.draftId}</dd>
-          <dt>Owner</dt><dd>PA specialist queue</dd>
-          <dt>Duplicate</dt><dd>{String(ex.result.duplicate)}</dd>
-          <dt>Readback</dt><dd className="good">VERIFIED ({checks.filter((c) => c.pass).length}/{checks.length} checks)</dd>
-          <dt>Chart mutation</dt><dd className="good">{ex.result.chartMutationPerformed ? "PERFORMED" : "NONE"}</dd>
-          <dt>Payer submission</dt><dd className="good">{ex.result.payerSubmissionPerformed ? "PERFORMED" : "NONE"}</dd>
+          <dt>Owner</dt><dd>PA specialist team</dd>
+          <dt>New task</dt><dd>{ex.result.duplicate ? "No, same task returned" : "Yes"}</dd>
+          <dt>Read back</dt><dd className="good">VERIFIED ({checks.filter((c) => c.pass).length}/{checks.length} checks)</dd>
+          <dt>Chart changed</dt><dd className="good">{ex.result.chartMutationPerformed ? "Yes" : "No"}</dd>
+          <dt>Sent to payer</dt><dd className="good">{ex.result.payerSubmissionPerformed ? "Yes" : "No"}</dd>
         </dl>
         {due && <DueLine due={due} />}
         <p className="result-foot">One missing evidence gap is now assigned, cited, and reviewable.</p>
@@ -467,6 +564,7 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
         <section className="result bad" role="alert">
           <h3><span className="banner-icon" aria-hidden="true">!</span>Staging did not complete, safe to retry</h3>
           <p>{run.error ?? ex.error?.message}</p>
+          <p>Trying again cannot create a second task.</p>
         </section>
         <ProjectionPanel p={projection} />
       </>
@@ -481,7 +579,7 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
         {failed.length > 0 && (
           <ul className="failed-checks">{failed.map((c) => <li key={c.name}><strong>{c.name}</strong>: expected {c.expected}, read back {c.actual}</li>)}</ul>
         )}
-        {ex.result && <p className="muted">The EHR reported {ex.result.taskId}; it is not shown as successful until readback matches.</p>}
+        {ex.result && <p className="muted">The record system reported {ex.result.taskId}; it is not shown as done until the read-back matches.</p>}
       </section>
     );
   }
@@ -489,7 +587,7 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
     return (
       <section className="result warn" role="status">
         <h3><span className="banner-icon" aria-hidden="true">i</span>Write rejected — draft changed</h3>
-        <p>The EHR rejected the task because the draft is now v{run.context?.draft.version} (event was v{run.event.draftVersion}). Nothing was written. Run the evidence check again.</p>
+        <p>The record system refused the task because the draft is now version {run.context?.draft.version} (the check was for version {run.event.draftVersion}). Nothing was written. Run the evidence check again.</p>
       </section>
     );
   }
@@ -497,30 +595,8 @@ function ResultPanel({ run, due, projection }: { run: Run; due: TaskDue | null; 
   return (
     <section className="result neutral" role="status">
       <h3>No action taken</h3>
-      <p>Outcome: <code>{run.outcomeState ?? run.status}</code>. The draft remains <code>{run.context?.draft.businessStatus ?? "DRAFT_INCOMPLETE"}</code>; no task, chart write or payer submission occurred.</p>
+      <p>Outcome: <strong>{outcomeWords(run.outcomeState ?? run.status)}</strong>. The draft stays “{draftStatusWords(run.context?.draft.businessStatus ?? "DRAFT_INCOMPLETE")}”. No task, chart change or payer submission happened.</p>
     </section>
-  );
-}
-
-function DemoControls({ disabled, onRedeliver, onEdit, onAdvance }: { disabled: boolean; onRedeliver: () => void; onEdit: () => void; onAdvance: () => void }) {
-  return (
-    <details className="demo-controls">
-      <summary>Demo controls — failure and recovery drills</summary>
-      <div className="demo-grid">
-        <div>
-          <button className="btn secondary" disabled={disabled} onClick={onRedeliver}>Redeliver the same event</button>
-          <p className="hint">Re-emits the same <code>eventId</code>. Staging again replays the stored result (<code>duplicate: true</code>) instead of creating a second task.</p>
-        </div>
-        <div>
-          <button className="btn secondary" disabled={disabled} onClick={onEdit}>Simulate another user editing the draft</button>
-          <p className="hint">Bumps the draft version in the mock EHR. A staged task for the old version then fails optimistic concurrency.</p>
-        </div>
-        <div>
-          <button className="btn secondary" disabled={disabled} onClick={onAdvance}>Move scenario time forward 25 hours</button>
-          <p className="hint">The check result is then older than the 24-hour limit, so staging is refused and the check must be run again.</p>
-        </div>
-      </div>
-    </details>
   );
 }
 
@@ -539,7 +615,7 @@ function DueLine({ due }: { due: TaskDue }) {
   if (due.state === "OVERDUE") {
     return (
       <p className="due-line overdue" role="status">
-        <strong>Review overdue by {due.hoursOverdue} h.</strong> It was due {fmtDateTime(due.dueAt)}. It stays with the PA specialist queue and is flagged as overdue there. Nothing is staged or sent automatically.
+        <strong>Review overdue by {due.hoursOverdue} h.</strong> It was due {fmtDateTime(due.dueAt)}. It stays with the PA specialist team and is flagged as overdue there. Nothing is staged or sent automatically.
       </p>
     );
   }
@@ -559,7 +635,7 @@ function CandidateList({ candidates }: { candidates: NonNullable<Run["candidates
         {candidates.map((c) => (
           <li key={c.id}>
             {c.id} · dated {c.date}
-            {c.selected ? " · read by the extractor" : c.sameContentAsSelected ? " · same content as the one read" : " · different content"}
+            {c.selected ? " · the one that was read" : c.sameContentAsSelected ? " · same content as the one read" : " · different content"}
           </li>
         ))}
       </ul>
@@ -577,10 +653,10 @@ function ProjectionPanel({ p }: { p: StagingProjection }) {
       <p className="projection-note">Projection only. Nothing has changed yet. Staging can still be refused by the final checks.</p>
       <dl className="projection">
         <dt>Creates</dt>
-        <dd>{p.taskEffect === "CREATE" ? "1 review task" : "1 review task, or returns the one already created (same idempotency key)"} for the {p.owner}</dd>
+        <dd>{p.taskEffect === "CREATE" ? "1 review task" : "1 review task, or returns the one already created (no duplicate)"} for the {p.owner}</dd>
         <dt>Review due</dt><dd>{fmtDateTime(p.dueAt)}</dd>
-        <dt>Draft</dt><dd>{p.draftId}: {p.fromStatus} to {p.toStatus}</dd>
-        <dt>Task links</dt><dd>{p.claimLeadCount} claim lead record{p.claimLeadCount === 1 ? "" : "s"}, document {p.evidenceDocumentId} (hash {p.evidenceHashShort}…), policy {p.policyVersion}</dd>
+        <dt>Draft</dt><dd>{p.draftId}: “{draftStatusWords(p.fromStatus)}” becomes “{draftStatusWords(p.toStatus)}”</dd>
+        <dt>Task links</dt><dd>{p.claimLeadCount} claim lead record{p.claimLeadCount === 1 ? "" : "s"}, document {p.evidenceDocumentId} (fingerprint {p.evidenceHashShort}…)</dd>
         <dt>Does not change</dt><dd>{p.unchanged.join(" · ")}</dd>
         <dt>Checked again first</dt><dd>{p.finalChecks.join(" · ")}</dd>
         {p.stageableUntil && (<><dt>Can be staged until</dt><dd>{fmtDateTime(p.stageableUntil)}</dd></>)}
@@ -669,11 +745,10 @@ function DemoSwitch({ role, mode, run, onSwitch }: { role: Role; mode: string | 
   );
 }
 
-const CHECK_WORD: Record<EvidenceCheck["status"], string> = { PASS: "Passed", WARN: "Needs a person", FAIL: "Did not pass", NOT_EVALUATED: "Not evaluated" };
-
 /**
  * CH-19: the deterministic checks that actually ran, as recorded by the server.
- * Read-only. It cannot stage anything; the server decides.
+ * Read-only. It cannot stage anything; the server decides. Record references
+ * are in Technical evidence (Layer 2).
  */
 function EvidenceChecks({ checks }: { checks: EvidenceCheck[] }) {
   if (checks.length === 0) return null;
@@ -684,20 +759,21 @@ function EvidenceChecks({ checks }: { checks: EvidenceCheck[] }) {
         <strong>Evidence checks:</strong> {n("PASS")} passed, {n("WARN")} need a person, {n("FAIL")} did not pass, {n("NOT_EVALUATED")} not evaluated
       </summary>
       <p className="muted">Recorded results of the rules that ran for this check. A check that did not run is shown as not evaluated, never as passed.</p>
-      <table className="mini">
-        <thead><tr><th>Check</th><th>Result</th><th>What it found</th><th>Evidence</th><th>Stops the task if not passed</th></tr></thead>
-        <tbody>
-          {checks.map((c) => (
-            <tr key={c.checkId}>
-              <td>{c.label}</td>
-              <td className={`check-${c.status.toLowerCase()}`}>{CHECK_WORD[c.status]}</td>
-              <td>{c.detail}</td>
-              <td>{c.evidenceRefs.length ? c.evidenceRefs.slice(0, 3).join(", ") + (c.evidenceRefs.length > 3 ? ` and ${c.evidenceRefs.length - 3} more` : "") : "None"}</td>
-              <td>{c.blocksAutoAction ? "Yes" : "No"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="table-wrap">
+        <table className="mini">
+          <thead><tr><th>Check</th><th>Result</th><th>What it found</th><th>Stops the task if not passed</th></tr></thead>
+          <tbody>
+            {checks.map((c) => (
+              <tr key={c.checkId}>
+                <td>{c.label}</td>
+                <td className={`check-${c.status.toLowerCase()}`}>{c.status === "NOT_EVALUATED" ? "Not evaluated" : STATUS_WORD[c.status]}</td>
+                <td>{c.detail}</td>
+                <td>{c.blocksAutoAction ? "Yes" : "No"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </details>
   );
 }

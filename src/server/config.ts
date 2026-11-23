@@ -23,6 +23,8 @@ export type Config = {
   maxRunAgeHours: number;
   /** Demo scenario reset via POST /api/scenarios/:id/load. False on locked-down hosted copies. */
   allowDemoReset: boolean;
+  /** Product P10: presentation only. "pitch" hides the Demo Lab and locks the demo identity; never changes server behaviour. */
+  uiMode: "demo" | "pitch";
   /** CH-20: visitor access gate. Separate from the demo role switch. */
   gate: GateConfig;
   /** CH-21: public Clarity project id (an identifier, not a secret). Sent to the browser only after gate entry. */
@@ -109,6 +111,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     if (/^[a-z0-9]{6,20}$/i.test(clarityId)) analytics = { provider: "clarity", projectId: clarityId, allowLocal: clarityAllowLocalRaw === "true" };
     else warnings.push("Clarity project id does not look like a Clarity project id. Analytics stays off.");
   }
+  const uiModeRaw = pick(env, "EB_UI_MODE", "OPTOM_UI_MODE")?.trim().toLowerCase();
+  if (uiModeRaw && uiModeRaw !== "demo" && uiModeRaw !== "pitch") warnings.push(`EB_UI_MODE "${uiModeRaw}" is not demo or pitch. Using demo.`);
   return {
     mode,
     port: Number(env.EB_PORT ?? env.PORT ?? 8787),
@@ -123,6 +127,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     requestingProviderOrgId: pick(env, "EB_REQUESTING_PROVIDER_ORG", "OPTOM_REQUESTING_PROVIDER_ORG") ?? "SYN-ORG-ORTHO-100",
     maxRunAgeHours: positiveNumber(pick(env, "EB_MAX_RUN_AGE_HOURS", "OPTOM_MAX_RUN_AGE_HOURS"), 24, "EB_MAX_RUN_AGE_HOURS", errors),
     allowDemoReset: allowDemoResetFrom(env),
+    uiMode: uiModeRaw === "pitch" ? "pitch" : "demo",
     gate,
     analytics,
     warnings,

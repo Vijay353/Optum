@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { Run } from "../orchestrator/runTypes";
-import { apiClient, type TaskRes } from "./api";
+import { apiClient, type EvidenceCheck, type TaskRes } from "./api";
 import { track } from "./analytics";
 import { claimsEmptyText, readbackEmptyText } from "./emptyStates";
 
 /** Collapsed-by-default inspector. Everything shown comes from the persisted run record or the simulators. */
-export function TechnicalInspector({ run, tasks, faults }: { run: Run; tasks: TaskRes[]; faults: Record<string, unknown> }) {
+export function TechnicalInspector({ run, tasks, faults, checks = [] }: { run: Run; tasks: TaskRes[]; faults: Record<string, unknown>; checks?: EvidenceCheck[] }) {
   const [audit, setAudit] = useState<{ app: unknown[]; ehr: unknown[] } | null>(null);
   return (
     <details className="inspector" onToggle={(e) => { if ((e.target as HTMLDetailsElement).open && !audit) apiClient.audit(run.runId).then(setAudit).catch(() => undefined); }}>
@@ -35,6 +35,13 @@ export function TechnicalInspector({ run, tasks, faults }: { run: Run; tasks: Ta
               ))}
             </tbody>
           </table>
+        </Section>
+        <Section title={`Decision codes · ${run.policyResult ? `${run.policyResult.decision} · rule ${run.policyResult.ruleId} · ${run.policyResult.policyVersion}` : "not evaluated"} · outcome ${run.outcomeState ?? "none"}`}>
+          {checks.length > 0 ? (
+            <table className="mini"><thead><tr><th>Check id</th><th>Status</th><th>Record references</th><th>Evaluated at</th><th>Rule version</th></tr></thead>
+              <tbody>{checks.map((c) => <tr key={c.checkId}><td><code>{c.checkId}</code></td><td>{c.status}</td><td>{c.evidenceRefs.length ? c.evidenceRefs.join(", ") : "None"}</td><td>{c.evaluatedAt ?? "—"}</td><td>{c.ruleVersion ?? "—"}</td></tr>)}</tbody></table>
+          ) : <p className="muted">No checks recorded.</p>}
+          <p className="muted">Started by the EHR event <code>PriorAuthDraftCreated</code>; the draft moves <code>{run.execution.stateChange?.from ?? run.context?.draft.businessStatus ?? "DRAFT_INCOMPLETE"}</code> → <code>{run.execution.stateChange?.to ?? "unchanged"}</code>.</p>
         </Section>
         <Section title="Event"><Json value={run.event} /></Section>
         <Section title="Source versions"><Json value={{ draft: run.context?.draft, policy: run.context?.policy, localDocuments: run.context?.localDocuments }} /></Section>
