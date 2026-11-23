@@ -67,7 +67,8 @@ test("mobile layout has no horizontal page scroll", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await loadScenario(page, "primary-success");
   await page.getByRole("button", { name: "Run evidence check" }).click();
-  await expect(page.getByRole("button", { name: "Stage evidence review task" })).toBeVisible();
+  // Spec CH-0.1: explicit timeout so a slow shared runner cannot collide with the 5 s default. Overflow assertion unchanged.
+  await expect(page.getByRole("button", { name: "Stage evidence review task" })).toBeVisible({ timeout: 15_000 });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
