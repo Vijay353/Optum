@@ -40,6 +40,8 @@ import { getRun, latestRunForDraft, listRuns, listRunSummariesForDraft } from ".
 import { listAppAudit, listEhrAudit } from "../persistence/auditStore";
 import { activeScenarioId, listScenarios, loadScenario } from "./scenarios";
 import { createDataRouter } from "./dataRoutes";
+import { buildWorklist } from "./worklist";
+import { readMetrics } from "./metrics";
 import { log } from "./logger";
 import type { Run } from "../orchestrator/runTypes";
 
@@ -146,6 +148,7 @@ export function createApp(opts: { db: Db; config: Config; extractor?: EvidenceEx
       configErrors: [...config.errors, ...(extractorError ? [extractorError] : [])],
       synthetic: true,
       accessGate: config.gate.enabled,
+      uiMode: config.uiMode,
       // CH-21: only behind the gate, so it reaches a browser only after verified entry.
       analytics: config.gate.enabled ? config.analytics : null,
     });
@@ -183,6 +186,18 @@ export function createApp(opts: { db: Db; config: Config; extractor?: EvidenceEx
     const history = sourceOrgId ? sourceHistory(db, { sourceOrgId, now, excludeDraftId: draftId }) : null;
     const taskDue = tasks.map((t) => ({ taskId: t.id, owner: t.owner.reference, ...reviewDue(t.restriction.period.end, now) }));
     res.json({ scenario: sc, draftId, draft, tasks, taskDue, sourceHistory: history, runHistory: listRunSummariesForDraft(db, draftId), evidenceChecks: run ? evidenceChecks(run) : [], limits: { maxRunAgeHours: config.maxRunAgeHours }, run: run ? viewRun(run, actorOf(req)) : null, faults: listFaults(db), clock: clockState() });
+  });
+
+  // Product P3: every draft with its latest check. GET only; pure composition of existing reads.
+  api.get("/worklist", (_req, res) => {
+    const scId = activeScenarioId(db);
+    const sc = listScenarios().find((s) => s.id === scId) ?? null;
+    res.json({ items: buildWorklist(db, { scenarioDraftId: sc?.draftId ?? null }) });
+  });
+
+  // Product P9: aggregates of this service's own run records. GET only; nothing estimated on the server.
+  api.get("/metrics", (_req, res) => {
+    res.json({ metrics: readMetrics(db), computedAt: clockOf(db).now().toISOString(), source: "app_runs" });
   });
 
   api.post("/drafts/:id/check", requireRole("pa-specialist"), async (req, res) => {
