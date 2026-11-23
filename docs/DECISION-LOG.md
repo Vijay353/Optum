@@ -48,3 +48,22 @@ Context (VERIFIED 2026-10-18 against Optum pages): Digital Auth Complete already
 | D14 | Demo identity switch + static scoped tokens | Exercises authorization paths; explicitly not production auth |
 | D15 | Browser E2E with Playwright; in the build sandbox a Chromium binary from npm (`@sparticuz/chromium`) was used via `EB_CHROMIUM_PATH` because the Playwright CDN was blocked | Real browser evidence without changing repo defaults |
 | D16 | Penpot SVG assets not produced | The supplied wireframe already covers the design; runnable product prioritised (P2) |
+
+## Product enhancement decisions (branch `product/ux-enhancement`, 2026-11-22)
+
+Each record: context → decision → consequence. Plan: `docs/PRODUCT-ENHANCEMENT-PLAN.md`.
+
+| ID | Decision | Rationale and consequence |
+|---|---|---|
+| PD1 | Add a worklist over **existing reads** (`GET /api/worklist`), not a new queue table | Base data already holds 8 drafts with 6 outcomes. Composition keeps the frozen backend frozen; the route is GET-only and a unit test proves it writes nothing |
+| PD2 | "Check all waiting drafts" = the existing `/check` per unchecked draft, sequentially, from the browser | Removes a repetitive step (agentic lever V1) without a bulk endpoint. Staging stays per draft and human-confirmed (I-1.1.1); a test proves zero tasks after a bulk check |
+| PD3 | Confirmation sheet before staging | The only write deserves an explicit, plain-language consent that restates the staged input. Costs one extra click; Enter-Enter keeps the keyboard path short. Server checks are unchanged and remain authoritative |
+| PD4 | Keep the lifecycle stepper (spec CH-1.1 proposed removing it) | V3 CH-14 already maps it from real statuses including stopped/failed/skipped, so the spec's "fake funnel" premise no longer holds; it orients first-time users |
+| PD5 | Reject toasts (spec CH-4.3) | Transient messages are easy to miss for older and screen-reader users; persistent `aria-live` result panels stay |
+| PD6 | Senior-readable scale instead of a zero-diff token refactor (spec CH-0.3) | The brief's 65+ requirement (≥16 px body, ≥44 px targets) outranks pixel-identity. Visible change by design; contrast for every token pair recorded in the register |
+| PD7 | Codes move to Layer 2; a banned-term unit test guards Layer 0/1 | Domain depth without domain vocabulary. Server messages and Technical evidence are not rewritten |
+| PD8 | "Why this decision" renders server-derived checks and policy reasons verbatim, never synthesises | Anti-black-box without the risk of invented explanations; a test compares it with all 16 scenarios |
+| PD9 | Metrics: server aggregates only; the one estimate lives in the browser with a visible formula and an editable assumption | Invariant I-1.3.4. The estimate is styled and labelled ESTIMATE and is never stored |
+| PD10 | Pitch mode is a presentation flag; the tour reads state and never fakes a step | A 3-minute demo that is the real product. `?mode=demo` is the escape hatch |
+| PD11 | Print view instead of a PDF library | Spec "zero new heavy dependencies"; the JSON package with digest stays the verifiable export |
+| PD12 | Template CSVs pinned as CRLF via `.gitattributes` | The generator writes RFC 4180 CRLF; git normalisation had silently broken one test |

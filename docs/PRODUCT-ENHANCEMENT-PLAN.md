@@ -219,3 +219,7 @@ Honesty footer: conceptual prototype, synthetic data, simulated integrations, de
 ## Implementation order and gates
 
 P0 CSV fix → P1 e2e hardening → P2 tokens + senior scale → P3 worklist + check-all → P4 three layers, copy deck, Why panel, states → P5 confirm sheet → P6 Demo Lab → P7 slim boundary → P8 print packet → P9 metrics + snapshot → P10 pitch mode + tour → P11 responsive + perf. Full gates (typecheck, lint, tests, build, bundle scan, e2e, demo:cli) before each commit; results recorded in `docs/IMPLEMENTATION-STATUS.md` (product register).
+
+---
+
+**Status (2026-11-22):** implemented. See `docs/PRODUCT-COMPLETION-REPORT.md` for the checklist, verification evidence and follow-ups.
