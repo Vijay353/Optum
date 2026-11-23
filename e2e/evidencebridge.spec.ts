@@ -1,5 +1,15 @@
 import { expect, test, type Page } from "@playwright/test";
 
+/**
+ * Product P5 (spec CH-1.3): staging now opens a confirmation sheet first.
+ * Every test that stages confirms through it; the server path is unchanged.
+ */
+async function confirmStage(page: Page) {
+  const sheet = page.getByRole("dialog", { name: "Create the review task?" });
+  await expect(sheet).toBeVisible();
+  await sheet.getByRole("button", { name: "Yes, create the review task" }).click();
+}
+
 async function loadScenario(page: Page, id: string) {
   const res = await page.request.post(`/api/scenarios/${id}/load`, { headers: { "x-demo-role": "pa-specialist" } });
   expect(res.ok()).toBeTruthy();
@@ -12,7 +22,7 @@ test("primary success: check → stage → verified task (keyboard-operable)", a
   await expect(page.getByText("NO PAYER SUBMISSION")).toBeVisible();
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("External PT evidence found — review before submission");
-  await expect(page.getByText("12 adjudicated PT service lines")).toBeVisible();
+  await expect(page.getByText("12 billed PT visit lines")).toBeVisible(); // copy deck (CH-1.4): was "12 adjudicated PT service lines"
   await expect(page.getByText("Claims are leads, not proof of completion or outcome.")).toBeVisible();
 
   // Citation dialog shows the exact cited text
@@ -22,6 +32,10 @@ test("primary success: check → stage → verified task (keyboard-operable)", a
 
   const stage = page.getByRole("button", { name: "Stage evidence review task" });
   await stage.focus();
+  await page.keyboard.press("Enter");
+  // The confirmation sheet opens with focus on its confirm button; Enter confirms (keyboard-only path).
+  await expect(page.getByRole("dialog", { name: "Create the review task?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Yes, create the review task" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.getByText("Task TASK-EVID-1042 staged and verified")).toBeVisible();
   await expect(page.getByText(/VERIFIED \(\d+\/\d+ checks\)/)).toBeVisible();
@@ -84,6 +98,7 @@ test("CH-0A: an opt-out recorded after the check stops staging", async ({ page }
   await page.getByRole("button", { name: /Commit 1 change/ }).click();
   await page.getByRole("button", { name: "Evidence review" }).click();
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Staging stopped: access is no longer permitted");
   await expect(page.getByText("Final check stopped the write")).toBeVisible();
   const ws = await (await page.request.get("/api/workspace")).json();
@@ -99,6 +114,7 @@ test("CH-0B: scenario time is shown and moving it forward blocks a stale check",
   await page.getByRole("button", { name: "Move scenario time forward 25 hours" }).click();
   await expect(page.getByText(/moved forward 25 h for the demo/)).toBeVisible();
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("This check is too old to act on");
   const ws = await (await page.request.get("/api/workspace")).json();
   expect(ws.tasks).toHaveLength(0);
@@ -108,6 +124,7 @@ test("CH-5: a staged review shows its due time, and later shows as overdue", asy
   await loadScenario(page, "primary-success");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByText(/Review due Oct 20, 2026/)).toBeVisible();
   await page.getByText("Demo controls").click();
   await page.getByRole("button", { name: "Move scenario time forward 25 hours" }).click();
@@ -163,6 +180,7 @@ test("CH-11: earlier checks sit behind a keyboard-operable disclosure", async ({
   await expect(page.getByText(/Showing check 1 of 1 for this draft/)).toBeVisible();
   await expect(page.getByText(/View earlier checks/)).toHaveCount(0);
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await page.getByRole("button", { name: "Run the evidence check again" }).click();
   await expect(page.getByText(/Showing check 2 of 2 for this draft/)).toBeVisible();
   // The current check waits to be staged again, so earlier checks start open (rule: open when a response is needed).
@@ -195,6 +213,7 @@ test("CH-13: a blocked viewer can switch demo role inline; the server still deci
   await page.getByRole("button", { name: "Demo: switch to PA specialist" }).click();
   await expect(page.getByLabel("Demo identity")).toHaveValue("pa-specialist");
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByText("Task TASK-EVID-1042 staged and verified")).toBeVisible();
   await expect(page.getByRole("button", { name: "Demo: switch to PA specialist" })).toHaveCount(0);
 });
@@ -233,6 +252,7 @@ test("CH-17: the audit chain can be verified from the inspector", async ({ page 
   await loadScenario(page, "primary-success");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByText("Task TASK-EVID-1042 staged and verified")).toBeVisible();
   await page.getByText("› Technical evidence").click();
   await page.getByRole("button", { name: "Verify audit chain" }).click();
@@ -255,6 +275,7 @@ test("CH-18: the audit evidence package downloads as JSON with an honest status"
   await loadScenario(page, "primary-success");
   await page.getByRole("button", { name: "Run evidence check" }).click();
   await page.getByRole("button", { name: "Stage evidence review task" }).click();
+  await confirmStage(page);
   await expect(page.getByText("Task TASK-EVID-1042 staged and verified")).toBeVisible();
   await page.getByText("› Technical evidence").click();
   const download = page.waitForEvent("download");

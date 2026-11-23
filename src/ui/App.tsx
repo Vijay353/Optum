@@ -2,19 +2,27 @@ import { useEffect, useState } from "react";
 import { apiClient, getRole, setRole, type Health, type Role } from "./api";
 import { EvidenceBridgePage } from "./EvidenceBridgePage";
 import { DataStudio } from "./DataStudio";
+import { Metrics } from "./Metrics";
+import { resolveUiMode } from "./pitch";
+import { BOUNDARY } from "./copy";
 import { didInstallFail, environmentAllows, installClarity, readConsent, trackEntered, withdraw, writeConsent, type Consent } from "./analytics";
 
 const storage = (kind: "localStorage" | "sessionStorage"): Storage | null => {
   try { return window[kind]; } catch { return null; }
 };
 
-type Tab = "review" | "data";
+type Tab = "review" | "metrics" | "data";
 
 export function App() {
   const [tab, setTab] = useState<Tab>("review");
   const [role, setRoleState] = useState<Role>(getRole());
   const [health, setHealth] = useState<Health | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Product P3: the selected draft survives tab switches and demo role changes.
+  const [selectedDraft, setSelectedDraft] = useState<string | null>(null);
+  // Product P10: pitch mode is presentation only; the server behaves the same.
+  const uiMode = resolveUiMode(health?.uiMode, window.location.search);
+  const pitch = uiMode === "pitch";
   const [consent, setConsent] = useState<Consent>(() => readConsent(storage("localStorage")));
   const [analyticsBlocked, setAnalyticsBlocked] = useState(false);
   const analytics = health?.analytics ?? null;
@@ -43,6 +51,10 @@ export function App() {
     apiClient.health().then(setHealth).catch(() => setHealth({ ok: false, mode: "unknown", extractor: null, configErrors: ["API is not reachable. Start it with npm run dev."] }));
   }, []);
 
+  useEffect(() => {
+    if (pitch && role !== "pa-specialist") { setRole("pa-specialist"); setRoleState("pa-specialist"); setRefreshKey((k) => k + 1); }
+  }, [pitch, role]);
+
   const changeRole = (r: Role) => {
     setRole(r);
     setRoleState(r);
@@ -50,7 +62,8 @@ export function App() {
   };
 
   return (
-    <div className="app">
+    <div className={`app ${pitch ? "pitch" : ""}`}>
+      <a className="skip-link" href="#main">Skip to main content</a>
       <header className="topbar">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
@@ -58,23 +71,27 @@ export function App() {
           </span>
           <span>
             <span className="brand-name">EvidenceBridge</span>
-            <span className="brand-sub">Pre-submission evidence review · conceptual Optum Insight extension, not an official Optum product</span>
+            <span className="brand-sub">Finds missing prior-auth evidence before submission · concept, not an official Optum product</span>
           </span>
         </div>
         <nav className="tabs" aria-label="Sections">
           <button className={tab === "review" ? "tab active" : "tab"} aria-current={tab === "review" ? "page" : undefined} onClick={() => setTab("review")}>Evidence review</button>
-          <button className={tab === "data" ? "tab active" : "tab"} aria-current={tab === "data" ? "page" : undefined} onClick={() => setTab("data")}>Data Studio</button>
+          <button className={tab === "metrics" ? "tab active" : "tab"} aria-current={tab === "metrics" ? "page" : undefined} onClick={() => setTab("metrics")}>Metrics</button>
+          {!pitch && <button className={tab === "data" ? "tab active" : "tab"} aria-current={tab === "data" ? "page" : undefined} onClick={() => setTab("data")}>Data Studio</button>}
         </nav>
         <div className="topbar-right">
-          <label className="role-select">
-            <span>Acting as <em>(demo identity)</em></span>
-            <select value={role} onChange={(e) => changeRole(e.target.value as Role)} aria-label="Demo identity">
-              <option value="pa-specialist">PA specialist</option>
-              <option value="viewer">Read-only viewer</option>
-              <option value="sim-admin">Simulator admin</option>
-            </select>
-          </label>
-          <span className="synthetic-badge" role="note"><span className="dot" aria-hidden="true" />SYNTHETIC DATA ONLY</span>
+          {pitch ? (
+            <span className="role-fixed">Acting as PA specialist <em>(demo identity)</em></span>
+          ) : (
+            <label className="role-select">
+              <span>Acting as <em>(demo identity)</em></span>
+              <select value={role} onChange={(e) => changeRole(e.target.value as Role)} aria-label="Demo identity">
+                <option value="pa-specialist">PA specialist</option>
+                <option value="viewer">Read-only viewer</option>
+                <option value="sim-admin">Simulator admin</option>
+              </select>
+            </label>
+          )}
           {health?.accessGate && (
             <form method="post" action="/gate/logout" className="lock-form">
               <button type="submit" className="btn link" title="Lock the demo and return to the passcode screen">Lock demo</button>
@@ -82,6 +99,17 @@ export function App() {
           )}
         </div>
       </header>
+
+      {/* Product P7 (spec CH-2.4): one slim, always-present boundary line instead of two loud badges. */}
+      <p className="boundary-line" role="note" title={BOUNDARY.info}>
+        <span className="boundary-dot" aria-hidden="true" />
+        <span>{BOUNDARY.synthetic.toUpperCase()}</span>
+        <span aria-hidden="true">·</span>
+        <span>{BOUNDARY.noChart}</span>
+        <span aria-hidden="true">·</span>
+        <span>{BOUNDARY.noPayer.toUpperCase()}</span>
+        <span className="sr-only"> {BOUNDARY.info}</span>
+      </p>
 
       {health && !health.ok && (
         <div className="config-banner" role="alert">
@@ -103,8 +131,14 @@ export function App() {
       )}
 
       {/* CH-21: record contents are masked in any session recording. */}
-      <main className="main" id="main" data-clarity-mask="true">
-        {tab === "review" ? <EvidenceBridgePage key={`r${refreshKey}`} role={role} mode={health?.mode ?? null} onSwitchRole={changeRole} /> : <DataStudio key={`d${refreshKey}`} role={role} />}
+      <main className="main" id="main" tabIndex={-1} data-clarity-mask="true">
+        {tab === "review" ? (
+          <EvidenceBridgePage key={`r${refreshKey}`} role={role} mode={health?.mode ?? null} onSwitchRole={changeRole} uiMode={uiMode} selectedDraft={selectedDraft} onSelectDraft={setSelectedDraft} />
+        ) : tab === "metrics" ? (
+          <Metrics key={`m${refreshKey}`} />
+        ) : (
+          <DataStudio key={`d${refreshKey}`} role={role} />
+        )}
       </main>
 
       <footer className="footer">
